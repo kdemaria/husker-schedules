@@ -1,0 +1,37 @@
+# Environment and credentials
+config/.env
+*.env
+
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Logs
+logs/*.log
+
+# Temporary files
+tmp/*
+!tmp/.gitkeep
+
+# Output files (optional - comment out if you want to track output)
+output/*.csv
+output/*.html
+output/*.zip
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
