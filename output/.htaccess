@@ -1,0 +1,22 @@
+# Allow access to schedule files
+Options +Indexes
+IndexOptions FancyIndexing
+
+# Enable CORS for Google Sheets access
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, OPTIONS"
+    Header set Access-Control-Allow-Headers "Content-Type"
+</IfModule>
+
+# Security: Only allow specific file types
+<FilesMatch "\.(csv|html|zip)$">
+    Order allow,deny
+    Allow from all
+</FilesMatch>
+
+# Deny access to other file types
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
