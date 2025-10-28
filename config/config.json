@@ -1,9 +1,0 @@
-{
-  "model": "claude-sonnet-4-5-20241022",
-  "max_tokens": 8000,
-  "temperature": 1.0,
-  "output_directory": "output",
-  "cleanup_days": 7,
-  "enable_notifications": false,
-  "notification_email": "kdemaria@demaria.net"
-}
