@@ -14,9 +14,10 @@ Create a separate csv for each sport listed above.
 
 Name each file in the format "Sportname.csv".
 
-Each CSV should contain the following header: Date, Day, Opponent, Home/Away, Location, Venue, Time, Event, Result
+Each CSV should contain the following header in this order: Date, Day, Opponent, Location, Venue, Time, Event, TV Broadcaster, Watch, Result
+   note: for Watch, this should include any TV broadcasts you can find while searching for the other items. List the broadcast network
 
-Create an .html document that lists data in each of the CSVs as a Sports Schedule, by sport in a nicely formatted and Nebraska Branded format.
+Create an .html document that lists data in each of the CSVs as a Sports Schedule, by sport in a nicely Nebraska Branded format. We have the rights to use the Nebraska brand logos, so feel free to match the brand to huskers.com. 
 
 IMPORTANT: Return each file as a code block in your response using the following format:
 
