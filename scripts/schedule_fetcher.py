@@ -98,6 +98,10 @@ class ScheduleFetcher:
                 model=self.config.get("model", "claude-sonnet-4-5-20250929"),
                 max_tokens=self.config.get("max_tokens", 16000),
                 temperature=self.config.get("temperature", 1.0),
+                thinking={
+                    "type": "enabled",
+                    "budget_tokens": 10000
+                },
                 messages=[
                     {
                         "role": "user",
