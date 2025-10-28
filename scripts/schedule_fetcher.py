@@ -201,32 +201,42 @@ class ScheduleFetcher:
 
         files_saved = 0
 
-        # Check for text blocks with code blocks
+        # Collect all text blocks from the response
+        all_text = []
         for block in message.content:
             if hasattr(block, 'type'):
                 if block.type == 'text':
-                    text_content = block.text
+                    all_text.append(block.text)
+                    logger.info(f"Found text block ({len(block.text)} chars)")
 
-                    # Save the full response to a temporary file for inspection
-                    response_file = self.tmp_dir / f"response_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
-                    with open(response_file, 'w') as f:
-                        f.write(text_content)
-                    logger.info(f"Saved response to {response_file}")
+        if not all_text:
+            logger.warning("No text blocks found in response")
+            return 0
 
-                    # Extract code blocks with filenames
-                    files = self._extract_code_blocks(text_content)
+        # Combine all text blocks
+        combined_text = '\n\n'.join(all_text)
+        logger.info(f"Combined text length: {len(combined_text)} chars")
 
-                    if not files:
-                        logger.warning("No code blocks with filenames found in response")
-                        return 0
+        # Save the full response to a temporary file for inspection
+        response_file = self.tmp_dir / f"response_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        with open(response_file, 'w') as f:
+            f.write(combined_text)
+        logger.info(f"Saved full response to {response_file}")
 
-                    # Save each file to the output directory
-                    for filename, content in files:
-                        output_path = self.output_dir / filename
-                        with open(output_path, 'w') as f:
-                            f.write(content)
-                        logger.info(f"Saved {filename} to {self.output_dir}")
-                        files_saved += 1
+        # Extract code blocks with filenames from combined text
+        files = self._extract_code_blocks(combined_text)
+
+        if not files:
+            logger.warning("No code blocks with filenames found in response")
+            return 0
+
+        # Save each file to the output directory
+        for filename, content in files:
+            output_path = self.output_dir / filename
+            with open(output_path, 'w') as f:
+                f.write(content)
+            logger.info(f"Saved {filename} to {self.output_dir}")
+            files_saved += 1
 
         if files_saved == 0:
             logger.warning("No files extracted from response")
