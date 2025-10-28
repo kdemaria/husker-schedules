@@ -10,6 +10,7 @@ import logging
 import zipfile
 import shutil
 import re
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Dict, Any, List, Tuple
@@ -101,21 +102,42 @@ class ScheduleFetcher:
             for iteration in range(max_iterations):
                 logger.info(f"API iteration {iteration + 1}/{max_iterations}...")
 
-                response = self.client.messages.create(
-                    model=self.config.get("model", "claude-sonnet-4-5-20250929"),
-                    max_tokens=self.config.get("max_tokens", 16000),
-                    temperature=self.config.get("temperature", 1.0),
-                    thinking={
-                        "type": "enabled",
-                        "budget_tokens": 10000
-                    },
-                    tools=[{
-                        "type": "web_search_20250305",
-                        "name": "web_search",
-                        "max_uses": 10
-                    }],
-                    messages=messages
-                )
+                # Add delay between iterations to avoid rate limits (except first call)
+                if iteration > 0:
+                    delay = 3  # 3 second delay between iterations
+                    logger.info(f"Waiting {delay} seconds before next API call...")
+                    time.sleep(delay)
+
+                # Retry logic for rate limits
+                max_retries = 5
+                for retry in range(max_retries):
+                    try:
+                        response = self.client.messages.create(
+                            model=self.config.get("model", "claude-sonnet-4-5-20250929"),
+                            max_tokens=self.config.get("max_tokens", 16000),
+                            temperature=self.config.get("temperature", 1.0),
+                            thinking={
+                                "type": "enabled",
+                                "budget_tokens": 10000
+                            },
+                            tools=[{
+                                "type": "web_search_20250305",
+                                "name": "web_search",
+                                "max_uses": 10
+                            }],
+                            messages=messages
+                        )
+                        break  # Success, exit retry loop
+
+                    except anthropic.RateLimitError as e:
+                        if retry < max_retries - 1:
+                            # Exponential backoff: 60s, 120s, 240s, 480s
+                            wait_time = 60 * (2 ** retry)
+                            logger.warning(f"Rate limit hit. Waiting {wait_time} seconds before retry {retry + 1}/{max_retries}...")
+                            time.sleep(wait_time)
+                        else:
+                            logger.error("Max retries exceeded for rate limit")
+                            raise
 
                 logger.info(f"Response ID: {response.id}, Stop reason: {response.stop_reason}")
 
