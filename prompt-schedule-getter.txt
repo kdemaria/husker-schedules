@@ -17,7 +17,7 @@ Name each file in the format "Sportname.csv".
 Each CSV should contain the following header in this order: Date, Day, Opponent, Location, Venue, Time, Event, TV Broadcaster, Watch, Result
    note: for Watch, this should include any TV broadcasts you can find while searching for the other items. List the broadcast network
 
-Create an .html document that lists data in each of the CSVs as a Sports Schedule, by sport in a nicely Nebraska Branded format. We have the rights to use the Nebraska brand logos, so feel free to match the brand to huskers.com. 
+Create an .html document that lists data in each of the CSVs as a Sports Schedule, by sport in a nicely Nebraska Branded format. We have the rights to use the Nebraska brand logos, so feel free to match the brand to huskers.com. Match the brand to https://www.wacornhuskers.com and the format of the tables to https://www.wacornhuskers.com/husker-schedules
 
 IMPORTANT: Return each file as a code block in your response using the following format:
 
