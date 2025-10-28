@@ -1,22 +1,30 @@
-We are going to create sports schedules for University of Nebraska Athletics in CSV format. We will be creating the CSVs for the following sports: Football, baseball, softball, mens basketball, Women’s Basketball, and Volleyball. 
+We are going to create sports schedules for University of Nebraska Athletics in CSV format. We will be creating the CSVs for the following sports: Football, Baseball, Softball, Men's Basketball, Women's Basketball, and Volleyball.
 
-Only consider the 2025-2026 seasons. 
+For each sport, include the current active season:
+- For sports currently in season: Include all games from the current season (both past results and future scheduled games)
+- For sports in their off-season: Include the upcoming season's schedule
+- Today's date is your reference point - include results for all games that have already been played
 
-If a season has ended as of the current date, use the next season's schedule. 
+IMPORTANT - Verify that all schedules are current as of today's date. For any games where the date has already passed, you MUST search for and include the actual game results. Do not leave the Result column blank for past games.
 
-verify that all schedules are current as of today's date. If any games show as 'scheduled' but the date has passed, search for the actual results and update the schedule accordingly.
+Research game results from these sources:
+- https://huskermax.com - for game dates, scores, and results
+- https://huskers.com (official University of Nebraska Athletics site)
+- https://espn.com - for schedules, scores, and game results
+- Search the web for recent game results if needed
 
-Use the https://huskermax.com web site to validate game dates and scores.
+Create a separate CSV for each sport listed above.
 
-Use the official University of Nebraska, espn.com to validate data. 
+Name each file in the format "Sportname.csv" (e.g., "Football.csv", "Baseball.csv").
 
-Create a separate csv for each sport listed above.
- 
-Name each file in the format "Sportname.csv". 
+Each CSV should contain the following header: Date, Day, Opponent, Home/Away, Location, Venue, Time, Event, Result
 
-Each CSV should contain the following header: Date, Day, Opponent, Home/Away, Location, Venue, Time, Event, Result 
+For the Result column:
+- For games that have already been played (dates in the past): Include the final score in the format "W 24-17" or "L 10-21" (W/L followed by Nebraska's score first, opponent's score second)
+- For future games (dates that haven't occurred yet): Leave the Result column empty or use "TBD"
+- Make sure to research and include actual game results for ALL past games - do not leave results blank for games that have already been played
 
-Create an .html document that lists data in each of the CSVs as a Sports Schedule, by sport in a nicely formatted and Nebraska Branded format.
+Create an HTML document that lists data in each of the CSVs as a Sports Schedule, by sport in a nicely formatted and Nebraska Branded format. Use Nebraska's colors (Scarlet #E41C38 and Cream #FEFDFA) and include the Nebraska "N" logo aesthetic if possible.
 
 IMPORTANT: Return each file as a code block in your response using the following format:
 
@@ -28,7 +36,21 @@ IMPORTANT: Return each file as a code block in your response using the following
 [CSV content here]
 ```
 
-(continue for all sports...)
+```csv:Softball.csv
+[CSV content here]
+```
+
+```csv:MensBasketball.csv
+[CSV content here]
+```
+
+```csv:WomensBasketball.csv
+[CSV content here]
+```
+
+```csv:Volleyball.csv
+[CSV content here]
+```
 
 ```html:index.html
 [HTML content here]
