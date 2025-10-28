@@ -113,7 +113,8 @@ class ScheduleFetcher:
                 max_retries = 5
                 for retry in range(max_retries):
                     try:
-                        response = self.client.messages.create(
+                        # Use streaming for large responses
+                        with self.client.messages.stream(
                             model=self.config.get("model", "claude-sonnet-4-5-20250929"),
                             max_tokens=self.config.get("max_tokens", 64000),
                             temperature=self.config.get("temperature", 1.0),
@@ -127,7 +128,8 @@ class ScheduleFetcher:
                                 "max_uses": 10
                             }],
                             messages=messages
-                        )
+                        ) as stream:
+                            response = stream.get_final_message()
                         break  # Success, exit retry loop
 
                     except anthropic.RateLimitError as e:
