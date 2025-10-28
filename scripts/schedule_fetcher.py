@@ -76,7 +76,8 @@ class ScheduleFetcher:
             return {
                 "model": "claude-sonnet-4-5-20250929",
                 "max_tokens": 16000,
-                "temperature": 1.0
+                "temperature": 1.0,
+                "thinking_budget": 5000
             }
 
     def _read_prompt(self) -> str:
@@ -118,7 +119,7 @@ class ScheduleFetcher:
                             temperature=self.config.get("temperature", 1.0),
                             thinking={
                                 "type": "enabled",
-                                "budget_tokens": 10000
+                                "budget_tokens": self.config.get("thinking_budget", 5000)
                             },
                             tools=[{
                                 "type": "web_search_20250305",
