@@ -1,14 +1,14 @@
 We are going to create some sports schedules in CSV format for the University of Nebraska Football, baseball, softball, mens basketball, Women's Basketball, and Volleyball.
 
-Only consider the 2025-2026 seasons.
+Only consider the 2025-2026 seasons. Include all games in a season, even games in the past.  
+Always refer to the teams as the "Univerisity of Nebraska Cornhuskers", "Cornhuskers", or "Nebraska Cornhuskers"
 
 If a season has ended as of the current date, use the next season's schedule.
 
 verify that all schedules are current as of today's date. If any games show as 'scheduled' but the date has passed, search for the actual results and update the schedule accordingly.
 
-Use the https://huskermax.com web site to validate game dates and scores.
 
-Use the official University of Nebraska, espn.com to validate data.
+I suggest you use the official University of Nebraska official site https://huskers.com/sports and  espn.com to validate data, but don't limit yourself to only those sources.
 
 Create a separate csv for each sport listed above.
 
