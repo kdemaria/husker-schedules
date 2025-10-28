@@ -91,7 +91,7 @@ class ScheduleFetcher:
 
     def _call_claude_api(self, prompt: str) -> Dict[str, Any]:
         """Call the Claude API with the given prompt."""
-        logger.info("Calling Claude API...")
+        logger.info("Calling Claude API with extended thinking...")
 
         try:
             message = self.client.messages.create(
@@ -102,11 +102,6 @@ class ScheduleFetcher:
                     "type": "enabled",
                     "budget_tokens": 10000
                 },
-                tools=[{
-                    "type": "web_search_20250305",
-                    "name": "web_search",
-                    "max_uses": 10
-                }],
                 messages=[
                     {
                         "role": "user",
