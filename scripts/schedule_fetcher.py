@@ -320,6 +320,42 @@ class ScheduleFetcher:
                 shutil.rmtree(item)
                 logger.info(f"Removed old temp directory: {item.name}")
 
+    def _verify_filesystem_permissions(self):
+        """Verify that all required directories exist and are writable."""
+        logger.info("Verifying filesystem permissions...")
+
+        directories_to_check = [
+            ("output", self.output_dir),
+            ("tmp", self.tmp_dir),
+            ("logs", LOG_DIR)
+        ]
+
+        for name, directory in directories_to_check:
+            # Check if directory exists
+            if not directory.exists():
+                error_msg = f"{name} directory does not exist: {directory}"
+                logger.error(error_msg)
+                raise FileNotFoundError(error_msg)
+
+            # Check if directory is writable
+            if not os.access(directory, os.W_OK):
+                error_msg = f"{name} directory is not writable: {directory}"
+                logger.error(error_msg)
+                raise PermissionError(error_msg)
+
+            logger.info(f"{name} directory is writable: {directory}")
+
+        # Try to create a test file in output directory
+        test_file = self.output_dir / ".write_test"
+        try:
+            test_file.write_text("test")
+            test_file.unlink()
+            logger.info("Filesystem write test successful")
+        except Exception as e:
+            error_msg = f"Failed to write test file to output directory: {e}"
+            logger.error(error_msg)
+            raise PermissionError(error_msg)
+
     def run(self):
         """Main execution method."""
         logger.info("=" * 50)
@@ -327,6 +363,9 @@ class ScheduleFetcher:
         logger.info("=" * 50)
 
         try:
+            # Verify filesystem permissions before making expensive API call
+            self._verify_filesystem_permissions()
+
             # Read prompt
             prompt = self._read_prompt()
 
