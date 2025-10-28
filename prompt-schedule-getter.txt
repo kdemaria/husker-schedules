@@ -1,26 +1,20 @@
 We are going to create some sports schedules in CSV format for the University of Nebraska Football, baseball, softball, mens basketball, Women's Basketball, and Volleyball.
 
-Take your time and think carefully about this task. Search thoroughly for complete and accurate schedule information.
-
-IMPORTANT: Only consider the 2025-2026 seasons. Do NOT use 2024 or earlier data. You MUST search the web for current 2025-2026 schedules.
+Only consider the 2025-2026 seasons.
 
 If a season has ended as of the current date, use the next season's schedule.
 
 verify that all schedules are current as of today's date. If any games show as 'scheduled' but the date has passed, search for the actual results and update the schedule accordingly.
 
-Search the web for 2025-2026 schedules using these sources:
-- https://huskers.com (official University of Nebraska Athletics site) - search for 2025-2026 schedules
-- https://huskermax.com - for game dates and scores
-- https://espn.com - search for Nebraska 2025-2026 schedules
-- Use web search to find the most current 2025-2026 season schedules
+Use the https://huskermax.com web site to validate game dates and scores.
+
+Use the official University of Nebraska, espn.com to validate data.
 
 Create a separate csv for each sport listed above.
 
 Name each file in the format "Sportname.csv".
 
 Each CSV should contain the following header: Date, Day, Opponent, Home/Away, Location, Venue, Time, Event, Result
-
-IMPORTANT: Ensure you create complete schedules for ALL six sports (Football, Baseball, Softball, Men's Basketball, Women's Basketball, and Volleyball). Do not skip any sports. Each sport should have a full season schedule.
 
 Create an .html document that lists data in each of the CSVs as a Sports Schedule, by sport in a nicely formatted and Nebraska Branded format.
 

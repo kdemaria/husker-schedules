@@ -102,6 +102,11 @@ class ScheduleFetcher:
                     "type": "enabled",
                     "budget_tokens": 10000
                 },
+                tools=[{
+                    "type": "web_search_20250305",
+                    "name": "web_search",
+                    "max_uses": 10
+                }],
                 messages=[
                     {
                         "role": "user",
