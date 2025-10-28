@@ -90,28 +90,63 @@ class ScheduleFetcher:
         return prompt
 
     def _call_claude_api(self, prompt: str) -> Dict[str, Any]:
-        """Call the Claude API with the given prompt."""
-        logger.info("Calling Claude API with extended thinking...")
+        """Call the Claude API with the given prompt and handle tool use loop."""
+        logger.info("Calling Claude API with extended thinking and web search...")
 
         try:
-            message = self.client.messages.create(
-                model=self.config.get("model", "claude-sonnet-4-5-20250929"),
-                max_tokens=self.config.get("max_tokens", 16000),
-                temperature=self.config.get("temperature", 1.0),
-                thinking={
-                    "type": "enabled",
-                    "budget_tokens": 10000
-                },
-                messages=[
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ]
-            )
+            messages = [{"role": "user", "content": prompt}]
 
-            logger.info(f"API call successful. Response ID: {message.id}")
-            return message
+            # Tool use loop
+            max_iterations = 25
+            for iteration in range(max_iterations):
+                logger.info(f"API iteration {iteration + 1}/{max_iterations}...")
+
+                response = self.client.messages.create(
+                    model=self.config.get("model", "claude-sonnet-4-5-20250929"),
+                    max_tokens=self.config.get("max_tokens", 16000),
+                    temperature=self.config.get("temperature", 1.0),
+                    thinking={
+                        "type": "enabled",
+                        "budget_tokens": 10000
+                    },
+                    tools=[{
+                        "type": "web_search_20250305",
+                        "name": "web_search",
+                        "max_uses": 10
+                    }],
+                    messages=messages
+                )
+
+                logger.info(f"Response ID: {response.id}, Stop reason: {response.stop_reason}")
+
+                # If we got a final answer, return it
+                if response.stop_reason == "end_turn" or response.stop_reason == "max_tokens":
+                    logger.info("Received final response")
+                    return response
+
+                # If Claude wants to use a tool
+                if response.stop_reason == "tool_use":
+                    # Add assistant's response to conversation
+                    messages.append({"role": "assistant", "content": response.content})
+
+                    # Extract tool uses and create a simple continuation
+                    # The web search is executed server-side, we just continue
+                    tool_use_count = sum(1 for block in response.content if hasattr(block, 'type') and block.type == 'tool_use')
+                    logger.info(f"Found {tool_use_count} tool use(s), continuing conversation...")
+
+                    # Continue with a simple prompt to get the final answer
+                    messages.append({
+                        "role": "user",
+                        "content": "Please provide the complete schedules based on your search results."
+                    })
+                    continue
+
+                # Some other stop reason
+                logger.warning(f"Unexpected stop reason: {response.stop_reason}")
+                return response
+
+            logger.error(f"Exceeded maximum iterations ({max_iterations})")
+            return response
 
         except Exception as e:
             logger.error(f"Error calling Claude API: {e}")
