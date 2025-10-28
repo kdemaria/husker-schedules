@@ -1,5 +1,5 @@
 {
-  "model": "claude-sonnet-4-5-20250929-thinking",
+  "model": "claude-sonnet-4-5-20250929",
   "max_tokens": 16000,
   "temperature": 1.0,
   "output_directory": "output",

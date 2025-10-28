@@ -73,7 +73,7 @@ class ScheduleFetcher:
         else:
             logger.warning(f"Config file not found at {config_path}, using defaults")
             return {
-                "model": "claude-sonnet-4-5-20250929-thinking",
+                "model": "claude-sonnet-4-5-20250929",
                 "max_tokens": 16000,
                 "temperature": 1.0
             }
@@ -95,7 +95,7 @@ class ScheduleFetcher:
 
         try:
             message = self.client.messages.create(
-                model=self.config.get("model", "claude-sonnet-4-5-20250929-thinking"),
+                model=self.config.get("model", "claude-sonnet-4-5-20250929"),
                 max_tokens=self.config.get("max_tokens", 16000),
                 temperature=self.config.get("temperature", 1.0),
                 messages=[
