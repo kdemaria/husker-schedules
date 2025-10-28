@@ -9,9 +9,10 @@ import json
 import logging
 import zipfile
 import shutil
+import re
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List, Tuple
 import anthropic
 from dotenv import load_dotenv
 
@@ -112,14 +113,33 @@ class ScheduleFetcher:
             logger.error(f"Error calling Claude API: {e}")
             raise
 
-    def _download_artifact(self, message: Any) -> Optional[Path]:
-        """Extract and save any artifacts from the API response."""
-        logger.info("Processing API response for artifacts...")
+    def _extract_code_blocks(self, text: str) -> List[Tuple[str, str]]:
+        """
+        Extract code blocks with filenames from Claude's response.
+        Returns list of (filename, content) tuples.
+        """
+        # Pattern to match code blocks with filenames: ```type:filename
+        pattern = r'```(?:csv|html):([^\n]+)\n(.*?)```'
+        matches = re.findall(pattern, text, re.DOTALL)
 
-        # Check for text blocks with artifacts or file content
+        files = []
+        for filename, content in matches:
+            filename = filename.strip()
+            content = content.strip()
+            files.append((filename, content))
+            logger.info(f"Extracted code block for file: {filename}")
+
+        return files
+
+    def _download_artifact(self, message: Any) -> int:
+        """Extract and save files from code blocks in the API response."""
+        logger.info("Processing API response for code blocks...")
+
+        files_saved = 0
+
+        # Check for text blocks with code blocks
         for block in message.content:
             if hasattr(block, 'type'):
-                # Handle text content - look for base64 encoded content or file references
                 if block.type == 'text':
                     text_content = block.text
 
@@ -129,12 +149,27 @@ class ScheduleFetcher:
                         f.write(text_content)
                     logger.info(f"Saved response to {response_file}")
 
-                    # If the response mentions creating files, we may need to extract them
-                    # This would need to be customized based on how Claude returns the files
-                    return response_file
+                    # Extract code blocks with filenames
+                    files = self._extract_code_blocks(text_content)
 
-        logger.warning("No artifacts found in response")
-        return None
+                    if not files:
+                        logger.warning("No code blocks with filenames found in response")
+                        return 0
+
+                    # Save each file to the output directory
+                    for filename, content in files:
+                        output_path = self.output_dir / filename
+                        with open(output_path, 'w') as f:
+                            f.write(content)
+                        logger.info(f"Saved {filename} to {self.output_dir}")
+                        files_saved += 1
+
+        if files_saved == 0:
+            logger.warning("No files extracted from response")
+        else:
+            logger.info(f"Successfully extracted and saved {files_saved} files")
+
+        return files_saved
 
     def _extract_zip_from_response(self, response_file: Path) -> Optional[Path]:
         """
@@ -224,22 +259,21 @@ class ScheduleFetcher:
             # Call Claude API
             response = self._call_claude_api(prompt)
 
-            # Download/extract artifact
-            artifact_path = self._download_artifact(response)
+            # Extract files from code blocks in response
+            files_saved = self._download_artifact(response)
 
-            if artifact_path:
-                # If we got a zip file, extract it
-                if artifact_path.suffix == '.zip':
-                    self._extract_and_move_files(artifact_path)
-                else:
-                    # Handle other artifact types (response file with instructions)
-                    logger.info("Response saved but no zip artifact found")
-                    logger.info("You may need to manually process the response file")
+            if files_saved > 0:
+                logger.info(f"Successfully saved {files_saved} schedule files to {self.output_dir}")
+            else:
+                logger.warning("No schedule files were extracted from the response")
+                logger.warning("Check the response file in tmp/ directory for details")
 
             # Cleanup old temporary files
             self._cleanup_tmp()
 
+            logger.info("=" * 50)
             logger.info("Schedule fetch process completed successfully")
+            logger.info("=" * 50)
             return True
 
         except Exception as e:

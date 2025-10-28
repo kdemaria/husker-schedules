@@ -18,4 +18,20 @@ Each CSV should contain the following header: Date, Day, Opponent, Home/Away, Lo
 
 Create an .html document that lists data in each of the CSVs as a Sports Schedule, by sport in a nicely formatted and Nebraska Branded format.
 
-Place each csv and the html file in a folder titled "schedule-sources", and then compress the folder into a file called scheduled-sources.zip and make that available for download.
+IMPORTANT: Return each file as a code block in your response using the following format:
+
+```csv:Football.csv
+[CSV content here]
+```
+
+```csv:Baseball.csv
+[CSV content here]
+```
+
+(continue for all sports...)
+
+```html:index.html
+[HTML content here]
+```
+
+Make sure each code block has a language identifier (csv or html) followed by a colon and the filename.
