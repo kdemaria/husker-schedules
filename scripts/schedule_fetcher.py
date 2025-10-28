@@ -9,9 +9,11 @@ import json
 import logging
 import zipfile
 import shutil
+import re
+import time
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List, Tuple
 import anthropic
 from dotenv import load_dotenv
 
@@ -73,8 +75,9 @@ class ScheduleFetcher:
             logger.warning(f"Config file not found at {config_path}, using defaults")
             return {
                 "model": "claude-sonnet-4-5-20250929",
-                "max_tokens": 8000,
-                "temperature": 1.0
+                "max_tokens": 64000,
+                "temperature": 1.0,
+                "thinking_budget": 5000
             }
 
     def _read_prompt(self) -> str:
@@ -89,52 +92,158 @@ class ScheduleFetcher:
         return prompt
 
     def _call_claude_api(self, prompt: str) -> Dict[str, Any]:
-        """Call the Claude API with the given prompt."""
-        logger.info("Calling Claude API...")
+        """Call the Claude API with the given prompt and handle tool use loop."""
+        logger.info("Calling Claude API with extended thinking and web search...")
 
         try:
-            message = self.client.messages.create(
-                model=self.config.get("model", "claude-sonnet-4-5-20250929"),
-                max_tokens=self.config.get("max_tokens", 8000),
-                temperature=self.config.get("temperature", 1.0),
-                messages=[
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ]
-            )
+            messages = [{"role": "user", "content": prompt}]
 
-            logger.info(f"API call successful. Response ID: {message.id}")
-            return message
+            # Tool use loop
+            max_iterations = 25
+            for iteration in range(max_iterations):
+                logger.info(f"API iteration {iteration + 1}/{max_iterations}...")
+
+                # Add delay between iterations to avoid rate limits (except first call)
+                if iteration > 0:
+                    delay = 3  # 3 second delay between iterations
+                    logger.info(f"Waiting {delay} seconds before next API call...")
+                    time.sleep(delay)
+
+                # Retry logic for rate limits
+                max_retries = 5
+                for retry in range(max_retries):
+                    try:
+                        # Use streaming for large responses
+                        with self.client.messages.stream(
+                            model=self.config.get("model", "claude-sonnet-4-5-20250929"),
+                            max_tokens=self.config.get("max_tokens", 64000),
+                            temperature=self.config.get("temperature", 1.0),
+                            thinking={
+                                "type": "enabled",
+                                "budget_tokens": self.config.get("thinking_budget", 5000)
+                            },
+                            tools=[{
+                                "type": "web_search_20250305",
+                                "name": "web_search",
+                                "max_uses": 10
+                            }],
+                            messages=messages
+                        ) as stream:
+                            response = stream.get_final_message()
+                        break  # Success, exit retry loop
+
+                    except anthropic.RateLimitError as e:
+                        if retry < max_retries - 1:
+                            # Exponential backoff: 60s, 120s, 240s, 480s
+                            wait_time = 60 * (2 ** retry)
+                            logger.warning(f"Rate limit hit. Waiting {wait_time} seconds before retry {retry + 1}/{max_retries}...")
+                            time.sleep(wait_time)
+                        else:
+                            logger.error("Max retries exceeded for rate limit")
+                            raise
+
+                logger.info(f"Response ID: {response.id}, Stop reason: {response.stop_reason}")
+
+                # If we got a final answer, return it
+                if response.stop_reason == "end_turn" or response.stop_reason == "max_tokens":
+                    logger.info("Received final response")
+                    return response
+
+                # If Claude wants to use a tool
+                if response.stop_reason == "tool_use":
+                    # Add assistant's response to conversation
+                    messages.append({"role": "assistant", "content": response.content})
+
+                    # Extract tool uses and create a simple continuation
+                    # The web search is executed server-side, we just continue
+                    tool_use_count = sum(1 for block in response.content if hasattr(block, 'type') and block.type == 'tool_use')
+                    logger.info(f"Found {tool_use_count} tool use(s), continuing conversation...")
+
+                    # Continue with a simple prompt to get the final answer
+                    messages.append({
+                        "role": "user",
+                        "content": "Please provide the complete schedules based on your search results."
+                    })
+                    continue
+
+                # Some other stop reason
+                logger.warning(f"Unexpected stop reason: {response.stop_reason}")
+                return response
+
+            logger.error(f"Exceeded maximum iterations ({max_iterations})")
+            return response
 
         except Exception as e:
             logger.error(f"Error calling Claude API: {e}")
             raise
 
-    def _download_artifact(self, message: Any) -> Optional[Path]:
-        """Extract and save any artifacts from the API response."""
-        logger.info("Processing API response for artifacts...")
+    def _extract_code_blocks(self, text: str) -> List[Tuple[str, str]]:
+        """
+        Extract code blocks with filenames from Claude's response.
+        Returns list of (filename, content) tuples.
+        """
+        # Pattern to match code blocks with filenames: ```type:filename
+        pattern = r'```(?:csv|html):([^\n]+)\n(.*?)```'
+        matches = re.findall(pattern, text, re.DOTALL)
 
-        # Check for text blocks with artifacts or file content
+        files = []
+        for filename, content in matches:
+            filename = filename.strip()
+            content = content.strip()
+            files.append((filename, content))
+            logger.info(f"Extracted code block for file: {filename}")
+
+        return files
+
+    def _download_artifact(self, message: Any) -> int:
+        """Extract and save files from code blocks in the API response."""
+        logger.info("Processing API response for code blocks...")
+
+        files_saved = 0
+
+        # Collect all text blocks from the response
+        all_text = []
         for block in message.content:
             if hasattr(block, 'type'):
-                # Handle text content - look for base64 encoded content or file references
                 if block.type == 'text':
-                    text_content = block.text
+                    all_text.append(block.text)
+                    logger.info(f"Found text block ({len(block.text)} chars)")
 
-                    # Save the full response to a temporary file for inspection
-                    response_file = self.tmp_dir / f"response_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
-                    with open(response_file, 'w') as f:
-                        f.write(text_content)
-                    logger.info(f"Saved response to {response_file}")
+        if not all_text:
+            logger.warning("No text blocks found in response")
+            return 0
 
-                    # If the response mentions creating files, we may need to extract them
-                    # This would need to be customized based on how Claude returns the files
-                    return response_file
+        # Combine all text blocks
+        combined_text = '\n\n'.join(all_text)
+        logger.info(f"Combined text length: {len(combined_text)} chars")
 
-        logger.warning("No artifacts found in response")
-        return None
+        # Save the full response to a temporary file for inspection
+        response_file = self.tmp_dir / f"response_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        with open(response_file, 'w') as f:
+            f.write(combined_text)
+        logger.info(f"Saved full response to {response_file}")
+
+        # Extract code blocks with filenames from combined text
+        files = self._extract_code_blocks(combined_text)
+
+        if not files:
+            logger.warning("No code blocks with filenames found in response")
+            return 0
+
+        # Save each file to the output directory
+        for filename, content in files:
+            output_path = self.output_dir / filename
+            with open(output_path, 'w') as f:
+                f.write(content)
+            logger.info(f"Saved {filename} to {self.output_dir}")
+            files_saved += 1
+
+        if files_saved == 0:
+            logger.warning("No files extracted from response")
+        else:
+            logger.info(f"Successfully extracted and saved {files_saved} files")
+
+        return files_saved
 
     def _extract_zip_from_response(self, response_file: Path) -> Optional[Path]:
         """
@@ -224,22 +333,21 @@ class ScheduleFetcher:
             # Call Claude API
             response = self._call_claude_api(prompt)
 
-            # Download/extract artifact
-            artifact_path = self._download_artifact(response)
+            # Extract files from code blocks in response
+            files_saved = self._download_artifact(response)
 
-            if artifact_path:
-                # If we got a zip file, extract it
-                if artifact_path.suffix == '.zip':
-                    self._extract_and_move_files(artifact_path)
-                else:
-                    # Handle other artifact types (response file with instructions)
-                    logger.info("Response saved but no zip artifact found")
-                    logger.info("You may need to manually process the response file")
+            if files_saved > 0:
+                logger.info(f"Successfully saved {files_saved} schedule files to {self.output_dir}")
+            else:
+                logger.warning("No schedule files were extracted from the response")
+                logger.warning("Check the response file in tmp/ directory for details")
 
             # Cleanup old temporary files
             self._cleanup_tmp()
 
+            logger.info("=" * 50)
             logger.info("Schedule fetch process completed successfully")
+            logger.info("=" * 50)
             return True
 
         except Exception as e:
