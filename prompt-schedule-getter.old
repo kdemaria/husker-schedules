@@ -1,0 +1,64 @@
+We are going to create some sports schedules in CSV format for the University of Nebraska Football, baseball, softball, mens basketball, Women's Basketball, and Volleyball.
+
+Only consider the 2025-2026 seasons. Include all games in a season, even games in the past.  
+Always refer to the teams as the "Univerisity of Nebraska Cornhuskers", "Cornhuskers", or "Nebraska Cornhuskers"
+
+If a season has ended as of the current date, use the next season's schedule.
+
+verify that all schedules are current as of today's date. If any games show as 'scheduled' but the date has passed, search for the actual results and update the schedule accordingly.
+
+
+I suggest you use the official University of Nebraska official site and the others below, but don't limit yourself to only those sources.
+ - https://huskers.com/sports/football/schedule
+ - https://huskers.com/sports/volleyball/schedule
+ - https://huskers.com/sports/baseball/schedule
+ - https://huskers.com/sports/softball/schedule
+ - https://huskers.com/sports/mens-basketball/schedule
+ - https://huskers.com/sports/womens-basketball/schedule
+ - https://www.espn.com/college-football/team/schedule/_/id/158
+ - https://cfb.guide/
+ - https://hurrdatsports.com/hailvarsity/volleyball/schedules-scores/
+ - https://hurrdatsports.com/hailvarsity/football/schedules-scores/
+ - https://hurrdatsports.com/hailvarsity/mens-basketball/schedules-scores/
+ - https://hurrdatsports.com/hailvarsity/womens-basketball/schedules-scores/
+
+Create a separate csv for each sport listed above.
+
+Name each file in the format "Sportname.csv".
+
+Each CSV should contain the following header in this order: Date, Day, Opponent, Location, Venue, Time, Event, Watch, Result
+   note: for Watch, this should include any TV broadcasts you can find while searching for the other items. List the broadcast network(s)
+
+Create an .html document that lists data in each of the CSVs as a Sports Schedule, by sport in a nicely Nebraska Branded format. We have the rights to use the Nebraska brand logos, so feel free to match the brand to huskers.com. Match the brand to https://www.wacornhuskers.com
+
+IMPORTANT: Return each file as a code block in your response using the following format:
+
+```csv:Football.csv
+[CSV content here]
+```
+
+```csv:Baseball.csv
+[CSV content here]
+```
+
+```csv:Softball.csv
+[CSV content here]
+```
+
+```csv:MensBasketball.csv
+[CSV content here]
+```
+
+```csv:WomensBasketball.csv
+[CSV content here]
+```
+
+```csv:Volleyball.csv
+[CSV content here]
+```
+
+```html:index.html
+[HTML content here]
+```
+
+Make sure each code block has a language identifier (csv or html) followed by a colon and the filename.

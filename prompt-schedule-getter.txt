@@ -1,24 +1,9 @@
-We are going to create some sports schedules in CSV format for the University of Nebraska Football, baseball, softball, mens basketball, Women's Basketball, and Volleyball.
-
-Only consider the 2025-2026 seasons. Include all games in a season, even games in the past.  
-Always refer to the teams as the "Univerisity of Nebraska Cornhuskers", "Cornhuskers", or "Nebraska Cornhuskers"
-
-If a season has ended as of the current date, use the next season's schedule.
-
-verify that all schedules are current as of today's date. If any games show as 'scheduled' but the date has passed, search for the actual results and update the schedule accordingly.
-
-
-I suggest you use the official University of Nebraska official site https://huskers.com/sports and  espn.com to validate data, but don't limit yourself to only those sources.
-
-Create a separate csv for each sport listed above.
-
-Name each file in the format "Sportname.csv".
-
-Each CSV should contain the following header in this order: Date, Day, Opponent, Location, Venue, Time, Event, TV Broadcaster, Watch, Result
-   note: for Watch, this should include any TV broadcasts you can find while searching for the other items. List the broadcast network
-
-Create an .html document that lists data in each of the CSVs as a Sports Schedule, by sport in a nicely Nebraska Branded format. We have the rights to use the Nebraska brand logos, so feel free to match the brand to huskers.com. Match the brand to https://www.wacornhuskers.com and the format of the tables to https://www.wacornhuskers.com/husker-schedules
-
+CRITICAL: Accuracy is paramount. For EVERY game, especially those with results:
+- Cross-reference at least 2-3 different sources before recording a result
+- If sources conflict, use the official Nebraska Athletics site (huskers.com) as the authoritative source
+- Never guess or fabricate results - if you cannot verify a result, mark it as "TBD" with a note
+- After completing each schedule, review it once more for logical consistency (e.g., no duplicate opponents on different dates unless it's a tournament/series)
+```
 IMPORTANT: Return each file as a code block in your response using the following format:
 
 ```csv:Football.csv
@@ -50,3 +35,122 @@ IMPORTANT: Return each file as a code block in your response using the following
 ```
 
 Make sure each code block has a language identifier (csv or html) followed by a colon and the filename.
+### 2. **Break the Task Into Phases**
+Instead of asking for everything at once, try:
+```
+Phase 1: Research and verify all schedules, creating separate CSVs
+Phase 2: Review each CSV for accuracy and consistency
+Phase 3: Create the HTML document using the verified CSVs
+```
+
+### 3. **Add Quality Control Checkpoints**
+```
+Before finalizing each CSV:
+- Verify no team appears twice on different dates (unless it's a legitimate series)
+- Confirm all past game results match multiple reliable sources
+- Check that game times and TV networks are accurate for completed games
+- Ensure Location and Venue are consistent and correct
+```
+
+### 4. **Be More Specific About Source Priority**
+```
+Source Priority (use in this order when conflicts arise):
+1. Official Nebraska Athletics site (huskers.com)
+2. Official opponent team websites
+3. ESPN and major sports networks
+4. Other sports sites
+
+When recording results for past games, verify from at least TWO of these sources.
+```
+
+### 5. **Add Explicit Instructions for Handling Past vs Future Games**
+```
+For games that have already occurred (before October 28, 2025):
+- You MUST search for and include actual results
+- Include the final score in the Result column
+- Verify the result from multiple sources
+- If you cannot find a verified result, mark as "Result not verified" rather than guessing
+
+For future games:
+- Leave Result column empty
+- Include scheduled time and TV network if available
+```
+
+### 6. **Request a Summary/Verification Report**
+```
+After creating each CSV, provide a brief verification report including:
+- Total games in schedule
+- Number of completed games with results
+- Number of future games
+- Any data you were unable to verify
+- Any inconsistencies you noticed
+```
+
+### 7. **Add a Warning Against Hallucination**
+```
+CRITICAL WARNING: Do NOT create fictional scores or results. Do NOT guess at outcomes. 
+If you cannot find verified information for a past game, explicitly state this rather 
+than making up data. Accuracy is more important than completeness.
+```
+
+## Revised Prompt Structure:
+
+Here's a more robust version of your prompt:
+```
+TASK: Create verified sports schedules for University of Nebraska Athletics (2025-2026 seasons)
+
+SPORTS TO INCLUDE: Football, Baseball, Softball, Men's Basketball, Women's Basketball, Volleyball
+
+ACCURACY REQUIREMENTS (CRITICAL):
+- For ALL past games (before October 28, 2025): MUST include verified results from multiple sources
+- Cross-reference at least 2-3 sources for every result
+- If sources conflict, use huskers.com as the authoritative source
+- NEVER guess or fabricate scores - mark uncertain data as "Unable to verify"
+- Check for logical consistency (no duplicate opponents unless legitimate series/tournament)
+
+PHASE 1 - DATA COLLECTION:
+1. Start with the official Nebraska Athletics site for each sport
+2. For each game that has already occurred, search multiple sources to verify the result
+3. Cross-reference with ESPN and other major sports sites
+4. Note any discrepancies and resolve them using the source priority below
+
+SOURCE PRIORITY (when conflicts arise):
+1. Official Nebraska Athletics (huskers.com)
+2. Official opponent team websites  
+3. ESPN, FOX Sports, CBS Sports
+4. Conference websites (Big Ten)
+5. Other reputable sports sites
+
+DATA REQUIREMENTS:
+- Team names: Always use "Nebraska Cornhuskers" or "Cornhuskers"
+- CSV Format: Date, Day, Opponent, Location, Venue, Time, Event, Watch, Result
+- Date format: MM/DD/YYYY
+- Past games: MUST have Result column filled with actual score (W/L XX-XX)
+- Future games: Leave Result column empty
+- Watch column: Include TV network(s) broadcasting the game
+
+QUALITY CONTROL (Complete for EACH sport before moving to next):
+1. Verify no duplicate games (unless legitimate series)
+2. Confirm all dates are logical and sequential
+3. Verify all past game results match multiple sources
+4. Check venue information is accurate
+5. Provide a verification summary listing:
+   - Total games
+   - Games with verified results
+   - Future games
+   - Any unverifiable data
+
+PHASE 2 - FILE CREATION:
+Create separate CSV files named: Football.csv, Baseball.csv, Softball.csv, 
+MensBasketball.csv, WomensBasketball.csv, Volleyball.csv
+
+PHASE 3 - HTML CREATION:
+Create an HTML document displaying all schedules in Nebraska-branded format
+- Match branding to huskers.com and wacornhuskers.com
+- Display each sport's schedule in a clear table format
+- Use Nebraska colors (scarlet #D00000 and cream #FEFDFA)
+
+VERIFICATION REPORT:
+After completing all schedules, provide a summary including any data you couldn't verify 
+or any inconsistencies found.
+
