@@ -72,8 +72,15 @@ class ScheduleFetcher:
         if not self.tmp_dir.exists():
             self.tmp_dir.mkdir(parents=True)
 
-        # Handle output directory creation carefully (especially for Google Drive paths)
-        if not self.output_dir.exists():
+        # Handle output directory creation carefully (especially for symlinks and Google Drive paths)
+        if self.output_dir.is_symlink():
+            # If it's a symlink, check if the target exists
+            target = self.output_dir.resolve()
+            if not target.exists():
+                # Create the target directory
+                target.mkdir(parents=True)
+        elif not self.output_dir.exists():
+            # Not a symlink and doesn't exist - create it
             self.output_dir.mkdir(parents=True)
         elif not self.output_dir.is_dir():
             raise ValueError(f"Output path exists but is not a directory: {self.output_dir}")
@@ -432,51 +439,33 @@ class ScheduleFetcher:
             return False
 
     def _generate_html_page(self) -> bool:
-        """Generate HTML page from existing CSV files."""
-        logger.info("Generating HTML page from CSV files...")
+        """Generate HTML page from existing CSV files using Python."""
+        logger.info("Generating HTML page from CSV files using Python generator...")
 
         try:
-            # Build list of CSV files for the prompt
-            csv_files = []
+            # Import the HTML generator
+            from html_generator import generate_schedule_html
+
+            # Check which CSV files exist
+            available_sports = []
             for sport in self.sports:
                 csv_path = self.output_dir / sport["filename"]
                 if csv_path.exists():
-                    csv_files.append(sport["filename"])
+                    available_sports.append(sport)
                 else:
                     logger.warning(f"CSV file not found for {sport['name']}: {sport['filename']}")
 
-            if not csv_files:
+            if not available_sports:
                 logger.error("No CSV files found to generate HTML page")
                 return False
 
-            # Read CSV files and pass their content to the prompt
-            csv_files_content = []
-            for csv_file in csv_files:
-                csv_path = self.output_dir / csv_file
-                with open(csv_path, 'r') as f:
-                    content = f.read()
-                    csv_files_content.append(f"File: {csv_file}\n{content}")
+            logger.info(f"Generating HTML from {len(available_sports)} sport(s)...")
 
-            csv_files_list = "\n\n".join(csv_files_content)
+            # Generate HTML using Python (no API call!)
+            output_path = generate_schedule_html(self.output_dir, self.sports)
 
-            # Read and prepare HTML generation prompt
-            replacements = {
-                "CSV_FILES_LIST": csv_files_list
-            }
-            prompt = self._read_prompt_template(self.html_prompt_file, replacements)
-
-            # Call Claude API
-            response = self._call_claude_api(prompt)
-
-            # Extract HTML file from response
-            files_saved = self._download_artifact(response)
-
-            if files_saved > 0:
-                logger.info("Successfully generated HTML page")
-                return True
-            else:
-                logger.warning("No HTML file extracted from response")
-                return False
+            logger.info(f"Successfully generated HTML page at: {output_path}")
+            return True
 
         except Exception as e:
             logger.error(f"Error generating HTML page: {e}", exc_info=True)
