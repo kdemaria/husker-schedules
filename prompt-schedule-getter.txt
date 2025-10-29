@@ -1,103 +1,4 @@
-CRITICAL: Accuracy is paramount. For EVERY game, especially those with results:
-- Cross-reference at least 2-3 different sources before recording a result
-- If sources conflict, use the official Nebraska Athletics site (huskers.com) as the authoritative source
-- Never guess or fabricate results - if you cannot verify a result, mark it as "TBD" with a note
-- After completing each schedule, review it once more for logical consistency (e.g., no duplicate opponents on different dates unless it's a tournament/series)
-```
-IMPORTANT: Return each file as a code block in your response using the following format:
-
-```csv:Football.csv
-[CSV content here]
-```
-
-```csv:Baseball.csv
-[CSV content here]
-```
-
-```csv:Softball.csv
-[CSV content here]
-```
-
-```csv:MensBasketball.csv
-[CSV content here]
-```
-
-```csv:WomensBasketball.csv
-[CSV content here]
-```
-
-```csv:Volleyball.csv
-[CSV content here]
-```
-
-```html:index.html
-[HTML content here]
-```
-
-Make sure each code block has a language identifier (csv or html) followed by a colon and the filename.
-### 2. **Break the Task Into Phases**
-Instead of asking for everything at once, try:
-```
-Phase 1: Research and verify all schedules, creating separate CSVs
-Phase 2: Review each CSV for accuracy and consistency
-Phase 3: Create the HTML document using the verified CSVs
-```
-
-### 3. **Add Quality Control Checkpoints**
-```
-Before finalizing each CSV:
-- Verify no team appears twice on different dates (unless it's a legitimate series)
-- Confirm all past game results match multiple reliable sources
-- Check that game times and TV networks are accurate for completed games
-- Ensure Location and Venue are consistent and correct
-```
-
-### 4. **Be More Specific About Source Priority**
-```
-Source Priority (use in this order when conflicts arise):
-1. Official Nebraska Athletics site (huskers.com)
-2. Official opponent team websites
-3. ESPN and major sports networks
-4. Other sports sites
-
-When recording results for past games, verify from at least TWO of these sources.
-```
-
-### 5. **Add Explicit Instructions for Handling Past vs Future Games**
-```
-For games that have already occurred (before October 28, 2025):
-- You MUST search for and include actual results
-- Include the final score in the Result column
-- Verify the result from multiple sources
-- If you cannot find a verified result, mark as "Result not verified" rather than guessing
-
-For future games:
-- Leave Result column empty
-- Include scheduled time and TV network if available
-```
-
-### 6. **Request a Summary/Verification Report**
-```
-After creating each CSV, provide a brief verification report including:
-- Total games in schedule
-- Number of completed games with results
-- Number of future games
-- Any data you were unable to verify
-- Any inconsistencies you noticed
-```
-
-### 7. **Add a Warning Against Hallucination**
-```
-CRITICAL WARNING: Do NOT create fictional scores or results. Do NOT guess at outcomes. 
-If you cannot find verified information for a past game, explicitly state this rather 
-than making up data. Accuracy is more important than completeness.
-```
-
-## Revised Prompt Structure:
-
-Here's a more robust version of your prompt:
-```
-TASK: Create verified sports schedules for University of Nebraska Athletics (2025-2026 seasons)
+TASK: Create verified sports schedules for University of Nebraska Athletics current season based on today's date. Validate today's date before you start using multiple sources.
 
 SPORTS TO INCLUDE: Football, Baseball, Softball, Men's Basketball, Women's Basketball, Volleyball
 
@@ -107,7 +8,20 @@ ACCURACY REQUIREMENTS (CRITICAL):
 - If sources conflict, use huskers.com as the authoritative source
 - NEVER guess or fabricate scores - mark uncertain data as "Unable to verify"
 - Check for logical consistency (no duplicate opponents unless legitimate series/tournament)
-
+Before finalizing any schedule, perform date arithmetic:
+1. Identify the current date (October 28, 2025)
+2. For EVERY game where the date is BEFORE the current date:
+   - The game MUST have a result
+   - If the official schedule shows it without a result, DO NOT TRUST IT
+   - Immediately search for the actual game result using multiple queries
+   - Try searches like: "[team] vs [opponent] [date] final score"
+   - Try: "[team] [date] game result"
+   - Check ESPN, team websites, news sources
+   - Keep searching until you find the verified result
+3. If after extensive searching (5+ queries) you still cannot find a result:
+   - Note this as "Result not found - may be postponed/cancelled"
+   - Document the search attempts made
+   
 PHASE 1 - DATA COLLECTION:
 1. Start with the official Nebraska Athletics site for each sport
 2. For each game that has already occurred, search multiple sources to verify the result
@@ -143,6 +57,38 @@ QUALITY CONTROL (Complete for EACH sport before moving to next):
 PHASE 2 - FILE CREATION:
 Create separate CSV files named: Football.csv, Baseball.csv, Softball.csv, 
 MensBasketball.csv, WomensBasketball.csv, Volleyball.csv
+Return each file as a code block in your response using the following format:
+
+```csv:Football.csv
+[CSV content here]
+```
+
+```csv:Baseball.csv
+[CSV content here]
+```
+
+```csv:Softball.csv
+[CSV content here]
+```
+
+```csv:MensBasketball.csv
+[CSV content here]
+```
+
+```csv:WomensBasketball.csv
+[CSV content here]
+```
+
+```csv:Volleyball.csv
+[CSV content here]
+```
+
+```html:index.html
+[HTML content here]
+```
+
+Make sure each code block has a language identifier (csv or html) followed by a colon and the filename.
+
 
 PHASE 3 - HTML CREATION:
 Create an HTML document displaying all schedules in Nebraska-branded format
