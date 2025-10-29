@@ -5,14 +5,13 @@
       "filename": "Football.csv"
     },
     {
-      "name": "Baseball",
-      "filename": "Baseball.csv"
+<<<<<<< HEAD
+=======
+      "name": "Volleyball",
+      "filename": "Volleyball.csv"
     },
     {
-      "name": "Softball",
-      "filename": "Softball.csv"
-    },
-    {
+>>>>>>> 3c345c476e5b0ea8aae3b7a5fbde1e3dbf6a34e5
       "name": "Men's Basketball",
       "filename": "MensBasketball.csv"
     },
@@ -21,8 +20,19 @@
       "filename": "WomensBasketball.csv"
     },
     {
+<<<<<<< HEAD
       "name": "Volleyball",
       "filename": "Volleyball.csv"
+    },
+    {
+=======
+>>>>>>> 3c345c476e5b0ea8aae3b7a5fbde1e3dbf6a34e5
+      "name": "Baseball",
+      "filename": "Baseball.csv"
+    },
+    {
+      "name": "Softball",
+      "filename": "Softball.csv"
     }
   ]
 }
