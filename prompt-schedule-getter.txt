@@ -1,4 +1,4 @@
-TASK: Create verified sports schedules for University of Nebraska Athletics current season based on today's date. Validate today's date before you start using multiple sources.
+TASK: Create verified sports schedules in tabular format for University of Nebraska Athletics current season based on today's date. Validate today's date before you start using multiple sources. 
 
 SPORTS TO INCLUDE: Football, Baseball, Softball, Men's Basketball, Women's Basketball, Volleyball
 
@@ -94,9 +94,10 @@ PHASE 3 - HTML CREATION:
 Create an HTML document displaying all schedules in Nebraska-branded format
 - Match branding to huskers.com and wacornhuskers.com
 - Display each sport's schedule in a clear table format
+- Use the same columns as the csv files
 - Use Nebraska colors (scarlet #D00000 and cream #FEFDFA)
 
 VERIFICATION REPORT:
 After completing all schedules, provide a summary including any data you couldn't verify 
-or any inconsistencies found.
+or any inconsistencies found in a separate file named verification_report.txt
 
