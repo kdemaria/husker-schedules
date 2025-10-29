@@ -21,10 +21,9 @@ logs/*.log
 tmp/*
 !tmp/.gitkeep
 
-# Output files (optional - comment out if you want to track output)
-output/*.csv
-output/*.html
-output/*.zip
+# Output files (directory contents ignored, but .gitkeep preserved)
+output/*
+!output/.gitkeep
 
 # IDE
 .vscode/
