@@ -5,7 +5,7 @@
   "thinking_budget": 5000,
   "output_directory": "output",
   "cleanup_days": 7,
-  "delay_between_sports": 30,
+  "delay_between_sports": 720,
   "enable_notifications": false,
   "notification_email": ""
 }
