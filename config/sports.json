@@ -1,3 +1,7 @@
+# Edit the file
+nano config/sports.json
+Delete everything and paste this clean version:
+
 {
   "sports": [
     {
@@ -5,13 +9,10 @@
       "filename": "Football.csv"
     },
     {
-<<<<<<< HEAD
-=======
       "name": "Volleyball",
       "filename": "Volleyball.csv"
     },
     {
->>>>>>> 3c345c476e5b0ea8aae3b7a5fbde1e3dbf6a34e5
       "name": "Men's Basketball",
       "filename": "MensBasketball.csv"
     },
@@ -20,13 +21,6 @@
       "filename": "WomensBasketball.csv"
     },
     {
-<<<<<<< HEAD
-      "name": "Volleyball",
-      "filename": "Volleyball.csv"
-    },
-    {
-=======
->>>>>>> 3c345c476e5b0ea8aae3b7a5fbde1e3dbf6a34e5
       "name": "Baseball",
       "filename": "Baseball.csv"
     },
