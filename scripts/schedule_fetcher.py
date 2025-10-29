@@ -42,6 +42,9 @@ class ScheduleFetcher:
         # Load configuration
         self.config = self._load_config(config_path)
 
+        # Load sports configuration
+        self.sports = self._load_sports_config()
+
         # Initialize Anthropic client
         self.api_key = os.getenv("ANTHROPIC_API_KEY")
         if not self.api_key:
@@ -52,12 +55,22 @@ class ScheduleFetcher:
         # Setup directories
         self.base_dir = Path(__file__).parent.parent
         self.tmp_dir = self.base_dir / "tmp"
-        self.output_dir = self.base_dir / "output"
-        self.prompt_file = self.base_dir / "prompt-schedule-getter.txt"
+
+        # Get output directory from environment variable or use default
+        output_dir_env = os.getenv("OUTPUT_DIRECTORY")
+        if output_dir_env:
+            self.output_dir = Path(output_dir_env)
+            logger.info(f"Using OUTPUT_DIRECTORY from environment: {self.output_dir}")
+        else:
+            self.output_dir = self.base_dir / self.config.get("output_directory", "output")
+            logger.info(f"Using default output directory: {self.output_dir}")
+
+        self.sport_prompt_template_file = self.base_dir / "prompt-sport-template.txt"
+        self.html_prompt_file = self.base_dir / "prompt-html-generator.txt"
 
         # Ensure directories exist
         self.tmp_dir.mkdir(exist_ok=True)
-        self.output_dir.mkdir(exist_ok=True)
+        self.output_dir.mkdir(exist_ok=True, parents=True)
 
         logger.info("ScheduleFetcher initialized successfully")
 
@@ -80,15 +93,40 @@ class ScheduleFetcher:
                 "thinking_budget": 5000
             }
 
-    def _read_prompt(self) -> str:
-        """Read the prompt from the prompt file."""
-        if not self.prompt_file.exists():
-            raise FileNotFoundError(f"Prompt file not found: {self.prompt_file}")
+    def _load_sports_config(self) -> List[Dict[str, str]]:
+        """Load sports configuration from JSON file."""
+        sports_config_path = Path(__file__).parent.parent / "config" / "sports.json"
 
-        with open(self.prompt_file, 'r') as f:
+        if sports_config_path.exists():
+            with open(sports_config_path, 'r') as f:
+                config = json.load(f)
+                return config.get("sports", [])
+        else:
+            logger.warning(f"Sports config file not found at {sports_config_path}, using defaults")
+            return [
+                {"name": "Football", "filename": "Football.csv"},
+                {"name": "Baseball", "filename": "Baseball.csv"},
+                {"name": "Softball", "filename": "Softball.csv"},
+                {"name": "Men's Basketball", "filename": "MensBasketball.csv"},
+                {"name": "Women's Basketball", "filename": "WomensBasketball.csv"},
+                {"name": "Volleyball", "filename": "Volleyball.csv"}
+            ]
+
+    def _read_prompt_template(self, template_file: Path, replacements: Dict[str, str] = None) -> str:
+        """Read a prompt template file and replace placeholders."""
+        if not template_file.exists():
+            raise FileNotFoundError(f"Prompt template file not found: {template_file}")
+
+        with open(template_file, 'r') as f:
             prompt = f.read()
 
-        logger.info(f"Loaded prompt from {self.prompt_file}")
+        # Replace placeholders if provided
+        if replacements:
+            for key, value in replacements.items():
+                placeholder = f"{{{{{key}}}}}"  # {{KEY}}
+                prompt = prompt.replace(placeholder, value)
+
+        logger.info(f"Loaded prompt template from {template_file}")
         return prompt
 
     def _call_claude_api(self, prompt: str) -> Dict[str, Any]:
@@ -356,6 +394,86 @@ class ScheduleFetcher:
             logger.error(error_msg)
             raise PermissionError(error_msg)
 
+    def _fetch_sport_schedule(self, sport_name: str, filename: str) -> bool:
+        """Fetch schedule for a single sport."""
+        logger.info(f"Fetching schedule for {sport_name}...")
+
+        try:
+            # Read and prepare sport-specific prompt
+            replacements = {
+                "SPORT_NAME": sport_name,
+                "FILENAME": filename
+            }
+            prompt = self._read_prompt_template(self.sport_prompt_template_file, replacements)
+
+            # Call Claude API
+            response = self._call_claude_api(prompt)
+
+            # Extract files from code blocks in response
+            files_saved = self._download_artifact(response)
+
+            if files_saved > 0:
+                logger.info(f"Successfully saved schedule for {sport_name}")
+                return True
+            else:
+                logger.warning(f"No schedule file extracted for {sport_name}")
+                return False
+
+        except Exception as e:
+            logger.error(f"Error fetching schedule for {sport_name}: {e}", exc_info=True)
+            return False
+
+    def _generate_html_page(self) -> bool:
+        """Generate HTML page from existing CSV files."""
+        logger.info("Generating HTML page from CSV files...")
+
+        try:
+            # Build list of CSV files for the prompt
+            csv_files = []
+            for sport in self.sports:
+                csv_path = self.output_dir / sport["filename"]
+                if csv_path.exists():
+                    csv_files.append(sport["filename"])
+                else:
+                    logger.warning(f"CSV file not found for {sport['name']}: {sport['filename']}")
+
+            if not csv_files:
+                logger.error("No CSV files found to generate HTML page")
+                return False
+
+            # Read CSV files and pass their content to the prompt
+            csv_files_content = []
+            for csv_file in csv_files:
+                csv_path = self.output_dir / csv_file
+                with open(csv_path, 'r') as f:
+                    content = f.read()
+                    csv_files_content.append(f"File: {csv_file}\n{content}")
+
+            csv_files_list = "\n\n".join(csv_files_content)
+
+            # Read and prepare HTML generation prompt
+            replacements = {
+                "CSV_FILES_LIST": csv_files_list
+            }
+            prompt = self._read_prompt_template(self.html_prompt_file, replacements)
+
+            # Call Claude API
+            response = self._call_claude_api(prompt)
+
+            # Extract HTML file from response
+            files_saved = self._download_artifact(response)
+
+            if files_saved > 0:
+                logger.info("Successfully generated HTML page")
+                return True
+            else:
+                logger.warning("No HTML file extracted from response")
+                return False
+
+        except Exception as e:
+            logger.error(f"Error generating HTML page: {e}", exc_info=True)
+            return False
+
     def run(self):
         """Main execution method."""
         logger.info("=" * 50)
@@ -366,28 +484,33 @@ class ScheduleFetcher:
             # Verify filesystem permissions before making expensive API call
             self._verify_filesystem_permissions()
 
-            # Read prompt
-            prompt = self._read_prompt()
+            # Process each sport separately
+            successful_sports = 0
+            for sport in self.sports:
+                logger.info(f"Processing {sport['name']}...")
+                if self._fetch_sport_schedule(sport["name"], sport["filename"]):
+                    successful_sports += 1
+                # Add a small delay between sports to avoid rate limits
+                time.sleep(2)
 
-            # Call Claude API
-            response = self._call_claude_api(prompt)
+            logger.info(f"Successfully fetched {successful_sports}/{len(self.sports)} sports schedules")
 
-            # Extract files from code blocks in response
-            files_saved = self._download_artifact(response)
-
-            if files_saved > 0:
-                logger.info(f"Successfully saved {files_saved} schedule files to {self.output_dir}")
-            else:
-                logger.warning("No schedule files were extracted from the response")
-                logger.warning("Check the response file in tmp/ directory for details")
+            # Generate HTML page from the CSV files
+            if successful_sports > 0:
+                logger.info("Generating HTML page...")
+                if self._generate_html_page():
+                    logger.info("HTML page generated successfully")
+                else:
+                    logger.warning("Failed to generate HTML page")
 
             # Cleanup old temporary files
             self._cleanup_tmp()
 
             logger.info("=" * 50)
-            logger.info("Schedule fetch process completed successfully")
+            logger.info("Schedule fetch process completed")
+            logger.info(f"Total sports processed: {successful_sports}/{len(self.sports)}")
             logger.info("=" * 50)
-            return True
+            return successful_sports > 0
 
         except Exception as e:
             logger.error(f"Error in schedule fetch process: {e}", exc_info=True)

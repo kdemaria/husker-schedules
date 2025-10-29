@@ -1,0 +1,71 @@
+TASK: Create verified sports schedule in tabular format for University of Nebraska Athletics {{SPORT_NAME}} current season based on today's date. Validate today's date before you start using multiple sources.
+
+SPORT: {{SPORT_NAME}}
+
+ACCURACY REQUIREMENTS (CRITICAL):
+- For ALL past games (before today): MUST include verified results from multiple sources
+- Cross-reference at least 2-3 sources for every result
+- If sources conflict, use huskers.com as the authoritative source
+- NEVER guess or fabricate scores - mark uncertain data as "Unable to verify"
+- Check for logical consistency (no duplicate opponents unless legitimate series/tournament)
+
+Before finalizing the schedule, perform date arithmetic:
+1. Identify the current date
+2. For EVERY game where the date is BEFORE the current date:
+   - The game MUST have a result
+   - If the official schedule shows it without a result, DO NOT TRUST IT
+   - Immediately search for the actual game result using multiple queries
+   - Try searches like: "[team] vs [opponent] [date] final score"
+   - Try: "[team] [date] game result"
+   - Check ESPN, team websites, news sources
+   - Keep searching until you find the verified result
+3. If after extensive searching (5+ queries) you still cannot find a result:
+   - Note this as "Result not found - may be postponed/cancelled"
+   - Document the search attempts made
+
+DATA COLLECTION:
+1. Start with the official Nebraska Athletics site for {{SPORT_NAME}}
+2. For each game that has already occurred, search multiple sources to verify the result
+3. Cross-reference with ESPN and other major sports sites
+4. Note any discrepancies and resolve them using the source priority below
+
+SOURCE PRIORITY (when conflicts arise):
+1. Official Nebraska Athletics (huskers.com)
+2. Official opponent team websites
+3. ESPN, FOX Sports, CBS Sports
+4. Conference websites (Big Ten)
+5. hurrdatsports.com
+6. Other reputable sports sites
+
+DATA REQUIREMENTS:
+- Team names: Always use "Nebraska Cornhuskers" or "Cornhuskers"
+- CSV Format: Date, Day, Opponent, Location, Venue, Time, Event, Watch, Result
+- Date format: MM/DD/YYYY
+- Past games: MUST have Result column filled with actual score (W/L XX-XX)
+- Future games: Leave Result column empty
+- Watch column: Include TV network(s) broadcasting the game
+
+QUALITY CONTROL:
+1. Verify no duplicate games (unless legitimate series)
+2. Confirm all dates are logical and sequential
+3. Verify all past game results match multiple sources
+4. Check venue information is accurate
+5. Provide a verification summary listing:
+   - Total games
+   - Games with verified results
+   - Future games
+   - Any unverifiable data
+
+FILE CREATION:
+Create a CSV file named: {{FILENAME}}
+Return the file as a code block in your response using the following format:
+
+```csv:{{FILENAME}}
+[CSV content here]
+```
+
+Make sure the code block has the language identifier (csv) followed by a colon and the filename.
+
+VERIFICATION REPORT:
+After completing the schedule, provide a brief summary including any data you couldn't verify
+or any inconsistencies found.

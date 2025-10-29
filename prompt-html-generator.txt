@@ -1,0 +1,35 @@
+TASK: Create an HTML page displaying all Nebraska Cornhuskers sports schedules from the provided CSV files.
+
+INPUT: You will be provided with the following CSV files:
+{{CSV_FILES_LIST}}
+
+REQUIREMENTS:
+1. Read and parse all the provided CSV files
+2. Create a single HTML page (index.html) that displays all schedules
+3. Each sport should have its own section with a clear heading
+4. Display the schedule data in a table format matching the CSV columns:
+   - Date, Day, Opponent, Location, Venue, Time, Event, Watch, Result
+
+BRANDING:
+- Match the branding of huskers.com and wacornhuskers.com
+- Use Nebraska colors:
+  - Scarlet: #D00000
+  - Cream: #FEFDFA
+- Modern, responsive design that works on mobile and desktop
+- Clean, professional appearance
+
+FEATURES:
+- Responsive tables that work on all screen sizes
+- Clear visual separation between sports
+- Highlight past games (with results) vs future games (without results)
+- Make the page easy to read and navigate
+- Include a last updated timestamp
+
+OUTPUT FORMAT:
+Return the HTML file as a code block in your response:
+
+```html:index.html
+[HTML content here]
+```
+
+Make sure the code block has the language identifier (html) followed by a colon and the filename.
