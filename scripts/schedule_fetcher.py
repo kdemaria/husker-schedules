@@ -69,8 +69,14 @@ class ScheduleFetcher:
         self.html_prompt_file = self.base_dir / "prompt-html-generator.txt"
 
         # Ensure directories exist
-        self.tmp_dir.mkdir(exist_ok=True)
-        self.output_dir.mkdir(exist_ok=True, parents=True)
+        if not self.tmp_dir.exists():
+            self.tmp_dir.mkdir(parents=True)
+
+        # Handle output directory creation carefully (especially for Google Drive paths)
+        if not self.output_dir.exists():
+            self.output_dir.mkdir(parents=True)
+        elif not self.output_dir.is_dir():
+            raise ValueError(f"Output path exists but is not a directory: {self.output_dir}")
 
         logger.info("ScheduleFetcher initialized successfully")
 
@@ -90,7 +96,9 @@ class ScheduleFetcher:
                 "model": "claude-sonnet-4-5-20250929",
                 "max_tokens": 64000,
                 "temperature": 1.0,
-                "thinking_budget": 5000
+                "thinking_budget": 5000,
+                "delay_between_sports": 30,
+                "output_directory": "output"
             }
 
     def _load_sports_config(self) -> List[Dict[str, str]]:
@@ -486,17 +494,25 @@ class ScheduleFetcher:
 
             # Process each sport separately
             successful_sports = 0
-            for sport in self.sports:
-                logger.info(f"Processing {sport['name']}...")
+            delay_between_sports = self.config.get("delay_between_sports", 30)
+
+            for index, sport in enumerate(self.sports):
+                logger.info(f"Processing {sport['name']} ({index + 1}/{len(self.sports)})...")
                 if self._fetch_sport_schedule(sport["name"], sport["filename"]):
                     successful_sports += 1
-                # Add a small delay between sports to avoid rate limits
-                time.sleep(2)
+
+                # Add delay between sports to avoid rate limits (except after last sport)
+                if index < len(self.sports) - 1:
+                    logger.info(f"Waiting {delay_between_sports} seconds before next sport to avoid rate limits...")
+                    time.sleep(delay_between_sports)
 
             logger.info(f"Successfully fetched {successful_sports}/{len(self.sports)} sports schedules")
 
             # Generate HTML page from the CSV files
             if successful_sports > 0:
+                logger.info(f"Waiting {delay_between_sports} seconds before generating HTML page...")
+                time.sleep(delay_between_sports)
+
                 logger.info("Generating HTML page...")
                 if self._generate_html_page():
                     logger.info("HTML page generated successfully")

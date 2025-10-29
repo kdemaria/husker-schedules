@@ -1,5 +1,36 @@
 # Changelog
 
+## 2025-10-29 - Fix Rate Limiting and Directory Issues
+
+### Bug Fixes
+- **Fixed output directory creation error**: Resolved "File exists" error when output directory already exists (especially for Google Drive paths)
+- **Fixed severe rate limiting issues**: Increased delay between API calls from 2 seconds to 30 seconds (configurable)
+- **Added delay before HTML generation**: Prevents rate limiting on the final API call
+
+### Configuration Changes
+- **Created `config/config.json`**: Added default configuration file with all settings
+- **Added `delay_between_sports` parameter**: Controls delay between API calls (default: 30 seconds)
+- **Updated `config.json.example`**: Added `delay_between_sports` setting
+
+### Improvements
+- Better directory existence checking before creation
+- Clearer logging showing progress through sports (e.g., "Processing Football (1/6)")
+- Logs show when waiting for rate limit protection
+- Configurable delays allow tuning based on API tier
+
+### Technical Details
+- Directory creation now checks existence first to avoid errors with existing directories
+- Default delay is 30 seconds between sports (vs previous 2 seconds)
+- Delay is skipped after the last sport to save time
+- Delay also applied before HTML generation to prevent rate limiting
+
+### Recommendations
+To avoid rate limits:
+1. Use the default 30-second delay (don't reduce below 20 seconds)
+2. Consider running during off-peak hours
+3. If you hit rate limits frequently, increase `delay_between_sports` to 45-60 seconds
+4. Monitor the logs for 429 errors
+
 ## 2025-10-29 - Refactor to Separate Sport Requests
 
 ### Breaking Changes
@@ -63,7 +94,7 @@ Edit `config/sports.json` and add/remove entries:
 ### Technical Details
 - Each sport now makes a separate Claude API call with web search enabled
 - HTML generation happens after all sports are complete
-- 2-second delay between sport requests to avoid rate limits
+- Configurable delay between sport requests to avoid rate limits (see config.json)
 - Sports are processed sequentially, not in parallel
 - Output directory resolution order:
   1. `OUTPUT_DIRECTORY` environment variable
