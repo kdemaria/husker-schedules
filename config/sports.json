@@ -5,12 +5,8 @@
       "filename": "Football.csv"
     },
     {
-      "name": "Baseball",
-      "filename": "Baseball.csv"
-    },
-    {
-      "name": "Softball",
-      "filename": "Softball.csv"
+      "name": "Volleyball",
+      "filename": "Volleyball.csv"
     },
     {
       "name": "Men's Basketball",
@@ -21,8 +17,12 @@
       "filename": "WomensBasketball.csv"
     },
     {
-      "name": "Volleyball",
-      "filename": "Volleyball.csv"
+      "name": "Baseball",
+      "filename": "Baseball.csv"
+    },
+    {
+      "name": "Softball",
+      "filename": "Softball.csv"
     }
   ]
 }
