@@ -33,7 +33,8 @@ SOURCE PRIORITY (when conflicts arise):
 2. Official opponent team websites  
 3. ESPN, FOX Sports, CBS Sports
 4. Conference websites (Big Ten)
-5. Other reputable sports sites
+5. hurrdatsports.com
+6. Other reputable sports sites
 
 DATA REQUIREMENTS:
 - Team names: Always use "Nebraska Cornhuskers" or "Cornhuskers"
