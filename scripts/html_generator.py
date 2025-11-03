@@ -7,7 +7,7 @@ Generates a consistent HTML page matching wacornhuskers.com design
 import csv
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict
 
 
 # Sport emojis
@@ -28,7 +28,8 @@ class HuskersHTMLGenerator:
         """Initialize the HTML generator.
 
         Args:
-            output_dir: Directory containing CSV files and where HTML will be saved
+            output_dir: Directory containing CSV files and where HTML
+                        will be saved
         """
         self.output_dir = Path(output_dir)
 
@@ -69,31 +70,54 @@ class HuskersHTMLGenerator:
         location = game.get('Location', '').strip()
         if location.lower() in ['home', 'lincoln ne']:
             location_class = 'home-game'
-        elif 'neutral' in location.lower() or any(city in location.lower() for city in ['kansas city', 'sioux falls']):
+        elif ('neutral' in location.lower() or
+              any(city in location.lower()
+                  for city in ['kansas city', 'sioux falls'])):
             location_class = 'neutral-game'
         else:
             location_class = 'away-game'
 
         # Build the row with both classes
-        html = f'                        <tr class="{row_class} {location_class}">\n'
-        html += f'                            <td>{game.get("Date", "")}</td>\n'
-        html += f'                            <td>{game.get("Day", "")}</td>\n'
-        html += f'                            <td>{game.get("Opponent", "")}</td>\n'
+        html = (
+            f'                        '
+            f'<tr class="{row_class} {location_class}">\n'
+        )
+        html += (
+            f'                            <td>{game.get("Date", "")}</td>\n'
+        )
+        html += (
+            f'                            <td>{game.get("Day", "")}</td>\n'
+        )
+        html += (
+            f'                            '
+            f'<td>{game.get("Opponent", "")}</td>\n'
+        )
         html += f'                            <td>{location}</td>\n'
-        html += f'                            <td>{game.get("Venue", "")}</td>\n'
-        html += f'                            <td>{game.get("Time", "")}</td>\n'
+        html += (
+            f'                            '
+            f'<td>{game.get("Venue", "")}</td>\n'
+        )
+        html += (
+            f'                            <td>{game.get("Time", "")}</td>\n'
+        )
 
         # Event with badge styling if present
         event = game.get("Event", "").strip()
         if event:
-            html += f'                            <td><span class="event-badge">{event}</span></td>\n'
+            html += (
+                f'                            '
+                f'<td><span class="event-badge">{event}</span></td>\n'
+            )
         else:
             html += '                            <td></td>\n'
 
         # Watch channel with badge styling if present
         watch = game.get("Watch", "").strip()
         if watch:
-            html += f'                            <td><span class="watch-channel">{watch}</span></td>\n'
+            html += (
+                f'                            '
+                f'<td><span class="watch-channel">{watch}</span></td>\n'
+            )
         else:
             html += '                            <td></td>\n'
 
@@ -207,7 +231,8 @@ class HuskersHTMLGenerator:
         }}
 
         body {{
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI',
+                         Roboto, 'Helvetica Neue', Arial, sans-serif;
             background-color: #f5f5f5;
             color: #333;
             line-height: 1.6;
@@ -439,7 +464,9 @@ class HuskersHTMLGenerator:
 
         # Add each sport section
         for sport in sports_config:
-            html += self.generate_sport_section(sport['name'], sport['filename'])
+            html += self.generate_sport_section(
+                sport['name'], sport['filename']
+            )
 
         # Add footer
         html += '''    </div>
@@ -471,7 +498,9 @@ class HuskersHTMLGenerator:
         return output_path
 
 
-def generate_schedule_html(output_dir: Path, sports_config: List[Dict[str, str]]) -> Path:
+def generate_schedule_html(
+        output_dir: Path, sports_config: List[Dict[str, str]]
+) -> Path:
     """Convenience function to generate HTML schedule page.
 
     Args:

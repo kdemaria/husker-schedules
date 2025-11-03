@@ -11,7 +11,7 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
-from html_generator import generate_schedule_html
+from html_generator import generate_schedule_html  # noqa: E402
 
 
 def main():
@@ -33,7 +33,10 @@ def main():
         # Not a symlink and doesn't exist - create it
         output_dir.mkdir(parents=True)
     elif not output_dir.is_dir():
-        print(f"✗ Error: Output path exists but is not a directory: {output_dir}")
+        print(
+            f"✗ Error: Output path exists but is not a directory: "
+            f"{output_dir}"
+        )
         return 1
 
     # Load sports configuration
@@ -74,7 +77,10 @@ def main():
 
     if not available_sports:
         print("⚠️  No CSV files found. Cannot generate HTML.")
-        print("   Please run the schedule fetcher first or create sample CSV files.")
+        print(
+            "   Please run the schedule fetcher first or create sample "
+            "CSV files."
+        )
         return 1
 
     # Generate HTML
