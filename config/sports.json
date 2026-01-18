@@ -2,27 +2,39 @@
   "sports": [
     {
       "name": "Football",
-      "filename": "Football.csv"
+      "filename": "Football.csv",
+      "season_end_month": 12,
+      "season_end_day": 31
     },
     {
       "name": "Volleyball",
-      "filename": "Volleyball.csv"
+      "filename": "Volleyball.csv",
+      "season_end_month": 12,
+      "season_end_day": 31
     },
     {
       "name": "Men's Basketball",
-      "filename": "MensBasketball.csv"
+      "filename": "MensBasketball.csv",
+      "season_end_month": 4,
+      "season_end_day": 15
     },
     {
       "name": "Women's Basketball",
-      "filename": "WomensBasketball.csv"
+      "filename": "WomensBasketball.csv",
+      "season_end_month": 4,
+      "season_end_day": 15
     },
     {
       "name": "Baseball",
-      "filename": "Baseball.csv"
+      "filename": "Baseball.csv",
+      "season_end_month": 6,
+      "season_end_day": 30
     },
     {
       "name": "Softball",
-      "filename": "Softball.csv"
+      "filename": "Softball.csv",
+      "season_end_month": 6,
+      "season_end_day": 30
     }
   ]
 }

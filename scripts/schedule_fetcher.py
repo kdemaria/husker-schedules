@@ -12,6 +12,7 @@ import shutil
 import re
 import time
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from pathlib import Path
 from typing import Optional, Dict, Any, List, Tuple
 import anthropic
@@ -163,6 +164,58 @@ class ScheduleFetcher:
                 },
                 {"name": "Volleyball", "filename": "Volleyball.csv"}
             ]
+
+    def _is_sport_in_blackout_period(self, sport: Dict[str, Any]) -> bool:
+        """
+        Check if a sport is in its blackout period (post-season quiet time).
+
+        Blackout period: The 3 months immediately following season end.
+        During this time, we don't update the schedule.
+        After 3 months, we start updating again to prepare for next season.
+
+        Args:
+            sport: Sport configuration dict with season_end_month and season_end_day
+
+        Returns:
+            True if sport is in blackout period, False otherwise
+        """
+        # If no season end info, always update
+        if 'season_end_month' not in sport or 'season_end_day' not in sport:
+            return False
+
+        today = datetime.now().date()
+        current_year = today.year
+
+        # Calculate season end date for current year
+        season_end = datetime(
+            current_year,
+            sport['season_end_month'],
+            sport['season_end_day']
+        ).date()
+
+        # If season end has already passed this year, it's for this year
+        # Otherwise it was last year
+        if season_end > today:
+            # Season end is in the future this year, so check last year's end
+            season_end = datetime(
+                current_year - 1,
+                sport['season_end_month'],
+                sport['season_end_day']
+            ).date()
+
+        # Calculate blackout end (3 months after season end)
+        blackout_end = season_end + relativedelta(months=3)
+
+        # Check if we're in the blackout period
+        in_blackout = season_end < today <= blackout_end
+
+        if in_blackout:
+            logger.info(
+                f"{sport['name']}: In blackout period "
+                f"(season ended {season_end}, blackout ends {blackout_end})"
+            )
+
+        return in_blackout
 
     def _read_prompt_template(
             self, template_file: Path,
@@ -629,6 +682,15 @@ class ScheduleFetcher:
                     f"Processing {sport['name']} "
                     f"({index + 1}/{len(self.sports)})..."
                 )
+
+                # Check if sport is in blackout period (post-season quiet time)
+                if self._is_sport_in_blackout_period(sport):
+                    logger.info(
+                        f"Skipping {sport['name']} - in blackout period "
+                        f"(season ended, waiting 3 months before next update)"
+                    )
+                    continue
+
                 if self._fetch_sport_schedule(
                         sport["name"], sport["filename"]):
                     successful_sports += 1
