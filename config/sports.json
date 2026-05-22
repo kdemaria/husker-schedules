@@ -1,40 +1,45 @@
 {
+  "_comment": "sources is tried in order per sport; first source that returns a valid schedule wins. huskers = huskers.com (canonical), espn = ESPN public API, llm = Claude API fallback.",
   "sports": [
     {
       "name": "Football",
       "filename": "Football.csv",
-      "season_end_month": 12,
-      "season_end_day": 31
+      "huskers_slug": "football",
+      "espn": { "path": "football/college-football", "team_id": 158 },
+      "sources": ["huskers", "espn", "llm"]
     },
     {
       "name": "Volleyball",
       "filename": "Volleyball.csv",
-      "season_end_month": 12,
-      "season_end_day": 31
+      "huskers_slug": "volleyball",
+      "sources": ["huskers", "llm"]
     },
     {
       "name": "Men's Basketball",
       "filename": "MensBasketball.csv",
-      "season_end_month": 4,
-      "season_end_day": 15
+      "huskers_slug": "mens-basketball",
+      "espn": { "path": "basketball/mens-college-basketball", "team_id": 158 },
+      "sources": ["huskers", "espn", "llm"]
     },
     {
       "name": "Women's Basketball",
       "filename": "WomensBasketball.csv",
-      "season_end_month": 4,
-      "season_end_day": 15
+      "huskers_slug": "womens-basketball",
+      "espn": { "path": "basketball/womens-college-basketball", "team_id": 158 },
+      "sources": ["huskers", "espn", "llm"]
     },
     {
       "name": "Baseball",
       "filename": "Baseball.csv",
-      "season_end_month": 6,
-      "season_end_day": 30
+      "huskers_slug": "baseball",
+      "espn": { "path": "baseball/college-baseball", "team_id": 99 },
+      "sources": ["huskers", "espn", "llm"]
     },
     {
       "name": "Softball",
       "filename": "Softball.csv",
-      "season_end_month": 6,
-      "season_end_day": 30
+      "huskers_slug": "softball",
+      "sources": ["huskers", "llm"]
     }
   ]
 }

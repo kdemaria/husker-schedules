@@ -1,71 +1,39 @@
-TASK: Create verified sports schedule in tabular format for University of Nebraska Athletics {{SPORT_NAME}} current season based on today's date. Validate today's date before you start using multiple sources.
+TASK: Produce a verified, current-season schedule for University of Nebraska
+Cornhuskers {{SPORT_NAME}}.
 
-SPORT: {{SPORT_NAME}}
+This request is a fallback: the official structured sources were unavailable.
+Use web search to rebuild the schedule accurately. Validate today's date first.
 
 ACCURACY REQUIREMENTS (CRITICAL):
-- For ALL past games (before today): MUST include verified results from multiple sources
-- Cross-reference at least 2-3 sources for every result
-- If sources conflict, use huskers.com as the authoritative source
-- NEVER guess or fabricate scores - mark uncertain data as "Unable to verify"
-- Check for logical consistency (no duplicate opponents unless legitimate series/tournament)
+- Use huskers.com as the authoritative source; cross-check with ESPN.
+- For every game whose date is in the past, the result MUST be filled in with
+  the actual final score. If an official schedule shows a past game with no
+  result, search for the result -- do not leave it blank and do not guess.
+- Never fabricate scores, dates, opponents, or venues.
+- If the current season has ended, use the next (upcoming) season.
 
-Before finalizing the schedule, perform date arithmetic:
-1. Identify the current date
-2. For EVERY game where the date is BEFORE the current date:
-   - The game MUST have a result
-   - If the official schedule shows it without a result, DO NOT TRUST IT
-   - Immediately search for the actual game result using multiple queries
-   - Try searches like: "[team] vs [opponent] [date] final score"
-   - Try: "[team] [date] game result"
-   - Check ESPN, team websites, news sources
-   - Keep searching until you find the verified result
-3. If after extensive searching (5+ queries) you still cannot find a result:
-   - Note this as "Result not found - may be postponed/cancelled"
-   - Document the search attempts made
+OUTPUT FORMAT:
+Return ONLY a single JSON array, inside one ```json code block, with one
+object per game. Each object MUST have exactly these keys (all string values):
 
-DATA COLLECTION:
-1. Start with the official Nebraska Athletics site for {{SPORT_NAME}}
-2. For each game that has already occurred, search multiple sources to verify the result
-3. Cross-reference with ESPN and other major sports sites
-4. Note any discrepancies and resolve them using the source priority below
+  "Date"      - MM/DD/YYYY
+  "Day"       - full weekday name, e.g. "Saturday"
+  "Opponent"  - opponent name, e.g. "Michigan"
+  "Location"  - "Lincoln NE" for home games; otherwise "City, ST"
+  "Venue"     - stadium / arena name
+  "Time"      - local start time, e.g. "6:30 PM", or "TBD"
+  "Event"     - e.g. "Big Ten Tournament", or "" for ordinary games
+  "Watch"     - TV network, e.g. "BTN", or "" if unknown
+  "Result"    - "W 24-17" / "L 6-24" for completed games; "" for future games
 
-SOURCE PRIORITY (when conflicts arise):
-1. Official Nebraska Athletics (huskers.com)
-2. Official opponent team websites
-3. ESPN, FOX Sports, CBS Sports
-4. Conference websites (Big Ten)
-5. hurrdatsports.com
-6. Other reputable sports sites
+Example:
 
-DATA REQUIREMENTS:
-- Team names: Always use "Nebraska Cornhuskers" or "Cornhuskers"
-- CSV Format: Date, Day, Opponent, Location, Venue, Time, Event, Watch, Result
-- Date format: MM/DD/YYYY
-- Past games: MUST have Result column filled with actual score (W/L XX-XX)
-- Future games: Leave Result column empty
-- Watch column: Include TV network(s) broadcasting the game
-
-QUALITY CONTROL:
-1. Verify no duplicate games (unless legitimate series)
-2. Confirm all dates are logical and sequential
-3. Verify all past game results match multiple sources
-4. Check venue information is accurate
-5. Provide a verification summary listing:
-   - Total games
-   - Games with verified results
-   - Future games
-   - Any unverifiable data
-
-FILE CREATION:
-Create a CSV file named: {{FILENAME}}
-Return the file as a code block in your response using the following format:
-
-```csv:{{FILENAME}}
-[CSV content here]
+```json
+[
+  {"Date":"09/06/2025","Day":"Saturday","Opponent":"Akron",
+   "Location":"Lincoln NE","Venue":"Memorial Stadium","Time":"6:30 PM",
+   "Event":"","Watch":"BTN","Result":"W 68-0"}
+]
 ```
 
-Make sure the code block has the language identifier (csv) followed by a colon and the filename.
-
-VERIFICATION REPORT:
-After completing the schedule, provide a brief summary including any data you couldn't verify
-or any inconsistencies found.
+Output the JSON array and nothing else after it.
