@@ -135,7 +135,8 @@ def send_alert(email, failures):
                f"Subject: [husker-schedules] {len(failures)} item(s) failed\n"
                f"Content-Type: text/plain; charset=utf-8\n\n"
                + "\n".join(body_lines) + "\n")
-    for binary in ("/usr/sbin/sendmail", "sendmail"):
+    for binary in ("/usr/sbin/sendmail", "/bin/sendmail",
+                   "/usr/lib/sendmail", "sendmail"):
         try:
             subprocess.run([binary, "-t"], input=message, text=True,
                            check=True, timeout=30)
