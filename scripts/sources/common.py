@@ -43,6 +43,20 @@ def http_get(url, timeout=30, retries=2, headers=None):
             resp = requests.get(url, headers=hdrs, timeout=timeout)
             resp.raise_for_status()
             return resp
+        except requests.HTTPError as err:
+            # A 4xx is the server's settled answer (a 404 for an unpublished
+            # schedule page, a 403 for a blocked host). Retrying only burns
+            # seconds, so fail fast and let the caller try the next URL or
+            # the next source. 408/425/429 are the transient exceptions.
+            status = getattr(err.response, "status_code", None)
+            if status and 400 <= status < 500 and status not in (408, 425, 429):
+                logger.warning("GET %s failed: %s (not retrying)", url, err)
+                raise
+            last_err = err
+            logger.warning("GET %s failed (attempt %d/%d): %s",
+                           url, attempt + 1, retries + 1, err)
+            if attempt < retries:
+                time.sleep(2 * (attempt + 1))
         except Exception as err:  # noqa: BLE001 - retry on any transport error
             last_err = err
             logger.warning("GET %s failed (attempt %d/%d): %s",

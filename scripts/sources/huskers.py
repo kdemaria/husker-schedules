@@ -8,6 +8,9 @@ HTML deterministically.
 The pages print each game's month, day and weekday but not the year. Years
 are inferred afterwards (`_assign_dates`) from the printed weekday plus the
 fact that the page lists games in chronological order.
+
+A sport's main schedule page is unpublished between seasons, so `fetch` falls
+back to the season-scoped URLs (`_candidate_urls`) rather than failing.
 """
 import datetime
 import logging
@@ -20,6 +23,10 @@ from .common import FULL_WEEKDAY, MONTHS, WEEKDAYS, empty_game, http_get
 logger = logging.getLogger("husker_schedules.sources.huskers")
 
 SCHEDULE_URL = "https://huskers.com/sports/{slug}/schedule"
+# Season-scoped archive. huskers.com unpublishes a sport's main schedule page
+# in the gap between one season ending and the next being released (baseball,
+# September 2026), but the season URL keeps serving every published season.
+SEASON_URL = "https://huskers.com/sports/{slug}/schedule/season/{year}"
 
 # Ceremony / fan-event rows that the schedule pages mix in with real games.
 # None of these phrases ever appears in an actual opponent's name.
@@ -178,16 +185,10 @@ def _assign_dates(rows, today=None):
         prev_date = date
 
 
-def fetch(sport_cfg, config=None, today=None):
-    """Fetch and parse a sport's schedule from huskers.com."""
-    slug = sport_cfg.get("huskers_slug")
-    if not slug:
-        return None
-    url = SCHEDULE_URL.format(slug=slug)
-    timeout = (config or {}).get("request_timeout", 30)
-    response = http_get(url, timeout=timeout)
+def _parse_games(html, sport_cfg, today=None):
+    """Parse one rendered schedule page into a list of games."""
     # html.parser is stdlib -- no compiled dependency to install on the host.
-    soup = BeautifulSoup(response.text, "html.parser")
+    soup = BeautifulSoup(html, "html.parser")
 
     rows = []
     for item in soup.select(".schedule-event-item"):
@@ -207,7 +208,44 @@ def fetch(sport_cfg, config=None, today=None):
         rows.append((game, month, day, weekday))
 
     _assign_dates(rows, today=today)
-    games = [game for game, _month, _day, _weekday in rows]
-    logger.info("huskers: parsed %d games for %s",
-                len(games), sport_cfg["name"])
-    return games or None
+    return [game for game, _month, _day, _weekday in rows]
+
+
+def _candidate_urls(slug, today):
+    """Schedule URLs to try, newest first.
+
+    The canonical page is correct whenever huskers.com has a current season
+    published. When it 404s (offseason, next season not announced yet) the
+    season-scoped archive still answers: next season as soon as it is posted,
+    otherwise the season just finished.
+    """
+    yield SCHEDULE_URL.format(slug=slug)
+    for year in (today.year + 1, today.year, today.year - 1):
+        yield SEASON_URL.format(slug=slug, year=year)
+
+
+def fetch(sport_cfg, config=None, today=None):
+    """Fetch and parse a sport's schedule from huskers.com."""
+    slug = sport_cfg.get("huskers_slug")
+    if not slug:
+        return None
+    timeout = (config or {}).get("request_timeout", 30)
+    today = today or datetime.date.today()
+
+    for url in _candidate_urls(slug, today):
+        try:
+            response = http_get(url, timeout=timeout)
+        except Exception as err:  # noqa: BLE001 - try the next candidate URL
+            logger.warning("huskers: %s unusable for %s: %s",
+                           url, sport_cfg["name"], err)
+            continue
+        games = _parse_games(response.text, sport_cfg, today=today)
+        if games:
+            logger.info("huskers: parsed %d games for %s from %s",
+                        len(games), sport_cfg["name"], url)
+            return games
+        logger.info("huskers: no games on %s for %s",
+                    url, sport_cfg["name"])
+    logger.warning("huskers: no schedule page yielded games for %s",
+                   sport_cfg["name"])
+    return None
