@@ -12,7 +12,7 @@ from pathlib import Path
 
 import anthropic
 
-from .common import CSV_COLUMNS, empty_game
+from .common import CSV_COLUMNS, empty_game, to_pacific
 
 logger = logging.getLogger("husker_schedules.sources.llm")
 
@@ -83,6 +83,7 @@ def fetch(sport_cfg, config=None, today=None):
             key = column.lower()
             value = row.get(key, row.get(column, ""))
             game[key] = "" if value is None else str(value).strip()
+        game["time"] = to_pacific(game["time"], game["date"])
         if game["opponent"] or game["date"]:
             games.append(game)
 

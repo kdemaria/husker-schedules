@@ -1,6 +1,9 @@
 """Shared helpers for schedule source adapters."""
+import datetime
 import logging
+import re
 import time
+from zoneinfo import ZoneInfo
 
 import requests
 
@@ -25,6 +28,71 @@ FULL_WEEKDAY = ["Monday", "Tuesday", "Wednesday", "Thursday",
 USER_AGENT = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
               "AppleWebKit/537.36 (KHTML, like Gecko) "
               "Chrome/124.0 Safari/537.36")
+
+# The chapter is in Washington state, so every published time is shown in
+# Pacific regardless of the zone the source printed it in.
+PACIFIC = ZoneInfo("America/Los_Angeles")
+
+# Zone abbreviations the sources print, mapped to real zones. The printed
+# abbreviation only picks the region; the game's date decides whether daylight
+# time applies, so a source that mislabels CST as CDT still converts correctly.
+SOURCE_ZONES = {
+    "ET": "America/New_York", "EDT": "America/New_York",
+    "EST": "America/New_York",
+    "CT": "America/Chicago", "CDT": "America/Chicago",
+    "CST": "America/Chicago",
+    "MT": "America/Denver", "MDT": "America/Denver",
+    "MST": "America/Denver",
+    "PT": "America/Los_Angeles", "PDT": "America/Los_Angeles",
+    "PST": "America/Los_Angeles",
+}
+
+TIME_WITH_ZONE = re.compile(
+    r"^\s*(\d{1,2}):(\d{2})\s*([AaPp])\.?[Mm]\.?\s+([A-Za-z]{2,4})\s*$")
+
+
+def format_pacific(moment):
+    """A timezone-aware datetime as "4:15 PM PDT", no leading zero."""
+    return (moment.astimezone(PACIFIC).strftime("%I:%M %p").lstrip("0")
+            + " " + moment.astimezone(PACIFIC).tzname())
+
+
+def to_pacific(time_text, date_text):
+    """Convert a printed clock time to Pacific: "6:15 PM CDT" -> "4:15 PM PDT".
+
+    Returns the text unchanged when there is nothing safe to convert: a blank,
+    a "TBD", a placeholder like "4 or 8 PM", an unparseable date, or a zone we
+    do not recognize. Showing a source's own time is better than showing a
+    confidently wrong one two hours off.
+    """
+    match = TIME_WITH_ZONE.match(time_text or "")
+    if not match:
+        return time_text
+    zone_name = SOURCE_ZONES.get(match.group(4).upper())
+    if not zone_name:
+        logger.info("time %r has an unrecognized zone; leaving as-is",
+                    time_text)
+        return time_text
+    try:
+        date = datetime.datetime.strptime(date_text, "%m/%d/%Y").date()
+    except (TypeError, ValueError):
+        return time_text
+
+    hour = int(match.group(1)) % 12
+    if match.group(3).lower() == "p":
+        hour += 12
+    local = datetime.datetime(date.year, date.month, date.day, hour,
+                              int(match.group(2)),
+                              tzinfo=ZoneInfo(zone_name))
+    pacific = local.astimezone(PACIFIC)
+    if pacific.date() != date:
+        # Converting would put the time on a different calendar day than the
+        # Date column, which reads as an error. Only a pre-2am start could do
+        # this, so leave it rather than print a contradiction.
+        logger.warning("time %r on %s lands on another day in Pacific; "
+                       "leaving as-is", time_text, date_text)
+        return time_text
+    return format_pacific(pacific)
 
 
 def empty_game():

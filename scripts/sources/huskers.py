@@ -18,7 +18,8 @@ import re
 
 from bs4 import BeautifulSoup
 
-from .common import FULL_WEEKDAY, MONTHS, WEEKDAYS, empty_game, http_get
+from .common import (FULL_WEEKDAY, MONTHS, WEEKDAYS, empty_game,
+                     http_get, to_pacific)
 
 logger = logging.getLogger("husker_schedules.sources.huskers")
 
@@ -252,6 +253,10 @@ def _parse_games(html, sport_cfg, today=None):
         rows.append((game, month, day, weekday))
 
     _assign_dates(rows, today=today)
+    # Times are converted only after _assign_dates, which resolves the year the
+    # page omits: the date is what decides daylight vs standard time.
+    for game, _month, _day, _weekday in rows:
+        game["time"] = to_pacific(game["time"], game["date"])
     return [game for game, _month, _day, _weekday in rows]
 
 

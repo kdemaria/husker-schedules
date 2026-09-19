@@ -4,18 +4,20 @@ ESPN exposes a stable JSON schedule endpoint per team. Nebraska's team id is
 per-sport: 158 for football and basketball, 99 for baseball. ESPN has no
 public college softball or volleyball league, so those sports omit an "espn"
 config block and this adapter returns None for them.
+
+ESPN timestamps are UTC, so both the date and the time are resolved in Pacific
+to match the rest of the project.
 """
 import datetime
 import logging
-from zoneinfo import ZoneInfo
 
-from .common import FULL_WEEKDAY, empty_game, http_get
+from .common import FULL_WEEKDAY, PACIFIC, empty_game, format_pacific, \
+    http_get
 
 logger = logging.getLogger("husker_schedules.sources.espn")
 
 API_URL = ("https://site.api.espn.com/apis/site/v2/sports/{path}/"
            "teams/{team_id}/schedule")
-CENTRAL = ZoneInfo("America/Chicago")
 
 
 def _score(competitor):
@@ -64,10 +66,10 @@ def _parse_event(event, team_id):
     game = empty_game()
     iso = competition.get("date") or event.get("date") or ""
     local = datetime.datetime.fromisoformat(
-        iso.replace("Z", "+00:00")).astimezone(CENTRAL)
+        iso.replace("Z", "+00:00")).astimezone(PACIFIC)
     game["date"] = local.strftime("%m/%d/%Y")
     game["day"] = FULL_WEEKDAY[local.weekday()]
-    game["time"] = local.strftime("%-I:%M %p") \
+    game["time"] = format_pacific(local) \
         if event.get("timeValid", True) else "TBD"
 
     opponent_team = opponent.get("team") or {}
