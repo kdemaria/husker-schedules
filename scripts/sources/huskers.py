@@ -28,6 +28,28 @@ SCHEDULE_URL = "https://huskers.com/sports/{slug}/schedule"
 # September 2026), but the season URL keeps serving every published season.
 SEASON_URL = "https://huskers.com/sports/{slug}/schedule/season/{year}"
 
+# Broadcaster names to recognize in a TV logo's alt text, most specific first.
+# huskers.com stopped labelling the TV link, so the only place a network
+# survives in the markup is the logo image's alt, which is the raw asset
+# filename: "FS1-1040x585", "FOX_small_black", "2560px-CBS_logo_(2020)".
+# Matching known names inside it keeps filename noise out of the CSV.
+NETWORKS = (
+    ("big ten network", "BTN"),
+    ("btn", "BTN"),
+    ("fs1", "FS1"),
+    ("fs2", "FS2"),
+    ("fox", "FOX"),
+    ("espn+", "ESPN+"),
+    ("espnu", "ESPNU"),
+    ("espn2", "ESPN2"),
+    ("espn", "ESPN"),
+    ("abc", "ABC"),
+    ("cbs", "CBS"),
+    ("peacock", "Peacock"),
+    ("nbc", "NBC"),
+    ("paramount", "Paramount+"),
+)
+
 # Ceremony / fan-event rows that the schedule pages mix in with real games.
 # None of these phrases ever appears in an actual opponent's name.
 NON_GAME_KEYWORDS = (
@@ -83,6 +105,29 @@ def _parse_result_or_time(item):
     return "", text  # e.g. "Postponed" / "Canceled"
 
 
+def _parse_watch(item):
+    """The game's broadcaster, or "" when none is published yet.
+
+    Prefers a labelled TV link if huskers.com ever restores one, then falls
+    back to the network logo's alt text in the game's link row. Returns ""
+    rather than guessing when the alt matches no known network, so an
+    unrecognized logo leaves the column blank instead of printing a filename.
+    """
+    label = _text(item.select_one(".schedule-event-item-links__link--tv"))
+    if label:
+        return label
+    images = item.select(".schedule-event-bottom__link img")
+    images += item.select("img.schedule-event-item-links__image")
+    for image in images:
+        alt = (image.get("alt") or "").lower()
+        if not alt:
+            continue
+        for needle, network in NETWORKS:
+            if needle in alt:
+                return network
+    return ""
+
+
 def _parse_item(item):
     """Parse one schedule item into (game, divider, month, day, weekday).
 
@@ -113,8 +158,7 @@ def _parse_item(item):
         game["location"] = city
         game["venue"] = venue
 
-    game["watch"] = _text(
-        item.select_one(".schedule-event-item-links__link--tv"))
+    game["watch"] = _parse_watch(item)
     game["event"] = _text(
         item.select_one(".schedule-event-item-default__promo-title"))
     game["result"], game["time"] = _parse_result_or_time(item)
